@@ -10,7 +10,10 @@
     "type": "git",
     "url": "git+https://github.com/kolosovskiy/kolos.dom.git"
   },
-  "author": "Ed Kolosovskiy",
+  "author": {
+    "name": "Ed Kolosovskiy",
+    "email": "edd.kolosovskiy@gmail.com"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/kolosovskiy/kolos.dom/issues"
