@@ -1,24 +1,20 @@
-export enum DOMPanelStates {
+export enum PanelComponentStates {
   Open = 'open',
   Closed = 'closed'
 }
 
-interface IParameters {
-  node: HTMLElement,
-}
-
-export class DOMPanel {
-  state: DOMPanelStates = DOMPanelStates.Closed;
+export class PanelComponent {
+  state: PanelComponentStates = PanelComponentStates.Closed;
   node: HTMLElement;
 
-  constructor({ node }: IParameters) {
+  constructor(node) {
     this.node = node;
   }
 
   open() {
     if (this.isOpen()) { return; }
 
-    this.state = DOMPanelStates.Open;
+    this.state = PanelComponentStates.Open;
 
     setTimeout(() => {
       this.bindOutClickEvent();
@@ -28,7 +24,7 @@ export class DOMPanel {
   close() {
     if (this.isClosed()) { return; }
 
-    this.state = DOMPanelStates.Closed;
+    this.state = PanelComponentStates.Closed;
 
     if (this.unbindOutClickEvent) {
       this.unbindOutClickEvent();
@@ -40,11 +36,11 @@ export class DOMPanel {
   }
 
   isOpen() {
-    return this.state === DOMPanelStates.Open;
+    return this.state === PanelComponentStates.Open;
   }
 
   isClosed() {
-    return this.state === DOMPanelStates.Closed;
+    return this.state === PanelComponentStates.Closed;
   }
 
   bindOutClickEvent() {
@@ -54,12 +50,10 @@ export class DOMPanel {
       }
     };
 
-    document.documentElement.addEventListener('click', onClick);
-    document.documentElement.addEventListener('touchstart', onClick);
+    document.documentElement.addEventListener('pointerup', onClick);
 
     this.unbindOutClickEvent = () => {
-      document.documentElement.removeEventListener('click', onClick);
-      document.documentElement.removeEventListener('touchstart', onClick);
+      document.documentElement.removeEventListener('pointerup', onClick);
     };
   }
 
