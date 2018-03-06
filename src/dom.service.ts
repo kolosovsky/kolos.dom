@@ -51,6 +51,33 @@ export class DOMService {
 			this.KEYCODES.DASH = 173;
 			this.KEYCODES.SEMI_COLON = 59;
 		}
+
+		document.addEventListener('pointermove', this.onDocumentPointerMove.bind(this));
+		document.addEventListener('pointerdown', this.onDocumentPointerDown.bind(this));
+		document.addEventListener('pointerup', this.onDocumentPointerUp.bind(this));
+	}
+
+	lastPointerMoveEvent: MouseEvent;
+	pointerCoords = {
+		x: 0,
+		y: 0
+	};
+
+	onDocumentPointerMove(e) {
+		this.lastPointerMoveEvent = e;
+
+		this.pointerCoords.x = e.clientX;
+		this.pointerCoords.y = e.clientY;
+	}
+
+	isPointerPressed = 0;
+
+	onDocumentPointerDown() {
+		this.isPointerPressed++;
+	}
+
+	onDocumentPointerUp() {
+		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 	}
 
 	createSVGElem(nodeName: string) {
