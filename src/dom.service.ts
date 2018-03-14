@@ -257,15 +257,16 @@ export class DOMService {
 	}
 
 	convertToFormData(data) {
-		// this function can't covert deep objects
+		// this function can't convert deep objects
 		// you can use JSON.stringify for them
 
 		let fd = new FormData();
 
 		for (let key in data) {
 			let val = data[key];
+			let type = typeof val;
 
-			if (typeof val === 'string' || typeof val === 'number' || (typeof val === 'boolean' && val) || this.isFile(val)) {
+			if (type === 'string' || type === 'number' || (type === 'boolean' && val) || this.isFile(val)) {
 				fd.append(key, val);
 			} else if (Array.isArray(val)) {
 				val.forEach(function (innerVal: any, innerKey) {
