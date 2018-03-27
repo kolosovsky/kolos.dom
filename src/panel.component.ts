@@ -1,9 +1,12 @@
+import {DOMService} from './dom.service';
+
 export enum PanelComponentStates {
   Open = 'open',
   Closed = 'closed'
 }
 
 export class PanelComponent {
+  DOMService: DOMService;
   state: PanelComponentStates = PanelComponentStates.Closed;
   node: HTMLElement;
   isDismountingNeeded?: boolean;
@@ -76,6 +79,14 @@ export class PanelComponent {
     };
   }
 
+  getWidth(withOverflowingPart?) {
+    return this.node.offsetWidth;
+  }
+
+  getHeight(withOverflowingPart?) {
+    return this.node.offsetHeight;
+  }
+
   dismount() {
     const boundingClientRect = this.node.getBoundingClientRect();
     const computedStyle = getComputedStyle(this.node);
@@ -89,8 +100,8 @@ export class PanelComponent {
     nodeStyle.position = 'absolute';
     nodeStyle.left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)) + 'px';
     nodeStyle.top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)) + 'px';
-    nodeStyle.width = this.node.offsetWidth + 'px';
-    nodeStyle.height = this.node.offsetHeight + 'px';
+    nodeStyle.width = this.getWidth() + 'px';
+    nodeStyle.height = this.getHeight() + 'px';
 
     this._originalParent = this.node.parentElement;
 
