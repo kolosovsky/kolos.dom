@@ -6,15 +6,27 @@ export enum PanelComponentStates {
 export class PanelComponent {
   state: PanelComponentStates = PanelComponentStates.Closed;
   node: HTMLElement;
+  isDismountingNeeded?: boolean;
+  _avatar?: HTMLElement;
+  _originalParent?: HTMLElement;
+  _originalAttributes?: {
+    [prop: string]: string
+  };
 
   constructor(node) {
     this.node = node;
   }
 
   open() {
-    if (this.isOpen()) { return; }
+    if (this.isOpen()) {
+      return;
+    }
 
     this.state = PanelComponentStates.Open;
+
+    if (this.isDismountingNeeded) {
+      this.dismount();
+    }
 
     setTimeout(() => {
       this.bindOutClickEvent();
@@ -22,9 +34,15 @@ export class PanelComponent {
   }
 
   close() {
-    if (this.isClosed()) { return; }
+    if (this.isClosed()) {
+      return;
+    }
 
     this.state = PanelComponentStates.Closed;
+
+    if (this.isDismountingNeeded) {
+      this.mount();
+    }
 
     if (this.unbindOutClickEvent) {
       this.unbindOutClickEvent();
@@ -45,6 +63,7 @@ export class PanelComponent {
 
   bindOutClickEvent() {
     let onClick = (e) => {
+
       if (!this.node.contains(e.target)) {
         this.close();
       }
@@ -55,6 +74,55 @@ export class PanelComponent {
     this.unbindOutClickEvent = () => {
       document.documentElement.removeEventListener('pointerup', onClick);
     };
+  }
+
+  dismount() {
+    const boundingClientRect = this.node.getBoundingClientRect();
+    const computedStyle = getComputedStyle(this.node);
+    let nodeStyle = this.node.style;
+    this._avatar = this.node.cloneNode(true) as HTMLElement;
+    this._avatar.style.opacity = '0';
+    this._originalAttributes = {
+      style: this.node.getAttribute('style')
+    };
+
+    nodeStyle.position = 'absolute';
+    nodeStyle.left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)) + 'px';
+    nodeStyle.top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)) + 'px';
+    nodeStyle.width = this.node.offsetWidth + 'px';
+    nodeStyle.height = this.node.offsetHeight + 'px';
+
+    this._originalParent = this.node.parentElement;
+
+    this.node.parentNode.insertBefore(this._avatar, this.node.nextSibling);
+
+    document.body.appendChild(this.node);
+  }
+
+  mount() {
+    for (let attributeKey in this._originalAttributes) {
+      const val = this._originalAttributes[attributeKey];
+
+      if (val === null) {
+        this.node.removeAttribute(attributeKey);
+      } else {
+        this.node.setAttribute(attributeKey, val || '');
+      }
+    }
+
+    if (document.documentElement.contains(this._avatar)) {
+      this._avatar.parentNode.insertBefore(this.node, this._avatar.nextSibling);
+    } else {
+      this.node.parentElement.removeChild(this.node);
+    }
+
+    if (this._avatar) {
+      this._avatar.parentElement.removeChild(this._avatar);
+    }
+
+    delete this._avatar;
+    delete this._originalParent;
+    delete this._originalAttributes;
   }
 
   unbindOutClickEvent?();
