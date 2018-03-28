@@ -1,5 +1,22 @@
 let toString = Object.prototype.toString;
 
+interface IViewport {
+	w: number;
+	h: number;
+}
+
+interface IScroll {
+	x: number;
+	y: number;
+}
+
+interface IVisible {
+	x1: number;
+	x2: number;
+	y1: number;
+	y2: number;
+}
+
 export class DOMService {
 	IS_MAC = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 	IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -42,6 +59,22 @@ export class DOMService {
 		COMMA: 188,
 		DASH: 189,
 	};
+	viewport: IViewport = {
+		w: 0,
+		h: 0
+	};
+
+	scroll: IScroll = {
+		x: 0,
+		y: 0,
+	};
+
+	visible: IVisible = {
+		x1: 0,
+		x2: 0,
+		y1: 0,
+		y2: 0,
+	};
 
 	private _SCROLLBAR_WIDTH: number;
 
@@ -55,6 +88,42 @@ export class DOMService {
 		document.addEventListener('pointermove', this.onDocumentPointerMove.bind(this));
 		document.addEventListener('pointerdown', this.onDocumentPointerDown.bind(this));
 		document.addEventListener('pointerup', this.onDocumentPointerUp.bind(this));
+		document.addEventListener('scroll', this.onDocumentScroll.bind(this));
+		window.addEventListener('resize', this.onWindowResize.bind(this));
+
+		this.refreshViewport();
+		this.refreshScroll();
+	}
+
+	onWindowResize() {
+		this.refreshViewport();
+	}
+
+	onDocumentScroll() {
+		this.refreshScroll();
+	}
+
+	refreshViewport() {
+		// window size including scrollbar size
+		this.viewport.w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+		this.viewport.h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+		this.refreshVisible();
+	}
+
+	refreshScroll() {
+		this.scroll.x = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+		this.scroll.y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+
+		this.refreshVisible();
+	}
+
+	refreshVisible() {
+		this.visible.x1 = this.scroll.x;
+		this.visible.x2 = this.scroll.x + this.viewport.w;
+
+		this.visible.y1 = this.scroll.y;
+		this.visible.y2 = this.scroll.y + this.viewport.h;
 	}
 
 	lastPointerMoveEvent: MouseEvent;
