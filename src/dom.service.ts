@@ -379,7 +379,6 @@ export class DOMService {
 				}
 			}
 		}
-
 		return fd;
 	}
 
