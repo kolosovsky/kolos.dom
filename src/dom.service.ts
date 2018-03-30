@@ -1,4 +1,8 @@
+import { Listener } from "./listener";
+
 let toString = Object.prototype.toString;
+let docElement = document.documentElement;
+let body = document.body;
 
 interface IViewport {
 	w: number;
@@ -59,6 +63,7 @@ export class DOMService {
 		COMMA: 188,
 		DASH: 189,
 	};
+
 	viewport: IViewport = {
 		w: 0,
 		h: 0
@@ -105,15 +110,15 @@ export class DOMService {
 
 	refreshViewport() {
 		// window size including scrollbar size
-		this.viewport.w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-		this.viewport.h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+		this.viewport.w = Math.max(docElement.clientWidth, window.innerWidth || 0);
+		this.viewport.h = Math.max(docElement.clientHeight, window.innerHeight || 0);
 
 		this.refreshVisible();
 	}
 
 	refreshScroll() {
-		this.scroll.x = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
-		this.scroll.y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+		this.scroll.x = window.pageXOffset || docElement.scrollLeft || body.scrollLeft;
+		this.scroll.y = window.pageYOffset || docElement.scrollTop || body.scrollTop;
 
 		this.refreshVisible();
 	}
@@ -149,6 +154,31 @@ export class DOMService {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 	}
 
+	listen(elem: HTMLElement | Window, event: string, handler, options?: Listener.IOptions) {
+		return new Listener(elem, event, handler, options);
+	}
+
+	getOffset(el) {
+		const rect = el.getBoundingClientRect();
+
+		return {
+			top: rect.top + this.scroll.y,
+			left: rect.left + this.scroll.x
+		};
+	}
+
+	getOffsetFromVisible(elem, params: { width?: number, height?: number } = {}) {
+		const rect = elem.getBoundingClientRect();
+		const { width = elem.offsetWidth, height = elem.offsetHeight } = params;
+
+		return {
+			left: rect.left,
+			top: rect.top,
+			right: this.viewport.w - rect.left - width,
+			bottom: this.viewport.h - rect.top - height,
+		}
+	}
+
 	createSVGElem(nodeName: string) {
 		return document.createElementNS("http://www.w3.org/2000/svg", nodeName);
 	}
@@ -161,7 +191,7 @@ export class DOMService {
 			outer.style.width = "100px";
 			outer.style.msOverflowStyle = "scrollbar";
 
-			document.body.appendChild(outer);
+			body.appendChild(outer);
 
 			let widthNoScroll = outer.offsetWidth;
 
@@ -201,7 +231,7 @@ export class DOMService {
 		});
 	}
 
-	forceLayout(element = document.body) { // dirty hack for forcing layout
+	forceLayout(element = body) { // dirty hack for forcing layout
 		element.offsetWidth;
 	}
 
@@ -272,11 +302,11 @@ export class DOMService {
 
 		elem.className = `hide ${cls}`;
 
-		document.body.appendChild(elem);
+		body.appendChild(elem);
 
 		result = parseFloat(getComputedStyle(elem)[prop]);
 
-		document.body.removeChild(elem);
+		body.removeChild(elem);
 
 		return result;
 	}

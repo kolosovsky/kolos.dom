@@ -1,140 +1,239 @@
-import {DOMService} from './dom.service';
+import { DOMService } from './dom.service';
+import { Listener } from "./listener";
 
 export enum PanelComponentStates {
-  Open = 'open',
-  Closed = 'closed'
+	Open = 'open',
+	Closed = 'closed'
 }
 
+const LISTENER_NAMESPACES = {
+	OPENING: 'opening',
+	DISMOUNTING: 'dismounting',
+};
+
 export class PanelComponent {
-  DOMService: DOMService;
-  state: PanelComponentStates = PanelComponentStates.Closed;
-  node: HTMLElement;
-  isDismountingNeeded?: boolean;
-  _avatar?: HTMLElement;
-  _originalParent?: HTMLElement;
-  _originalAttributes?: {
-    [prop: string]: string
-  };
+	DOMService: DOMService;
+	state: PanelComponentStates = PanelComponentStates.Closed;
+	node: HTMLElement;
+	isDismountingNeeded?: boolean;
+	overflowing?: {
+		left?: number,
+		right?: number,
+		top?: number,
+		bottom?: number,
+	};
 
-  constructor(node) {
-    this.node = node;
-  }
+	private _avatar?: HTMLElement;
+	private _originalParent?: HTMLElement;
+	private _originalAttributes?: {
+		[prop: string]: string
+	};
+	private _isDismounted?: boolean;
+	private _listeners?: {
+		[prop: string]: Listener[]
+	};
 
-  open() {
-    if (this.isOpen()) {
-      return;
-    }
+	constructor(node) {
+		this.node = node;
+	}
 
-    this.state = PanelComponentStates.Open;
+	onOpen?();
 
-    if (this.isDismountingNeeded) {
-      this.dismount();
-    }
+	open() {
+		if (this.isOpen()) { return; }
 
-    setTimeout(() => {
-      this.bindOutClickEvent();
-    }, 0);
-  }
+		this.state = PanelComponentStates.Open;
 
-  close() {
-    if (this.isClosed()) {
-      return;
-    }
+		if (this.isDismountingNeeded) {
+			this.dismount();
+		}
 
-    this.state = PanelComponentStates.Closed;
+		const offset = this.DOMService.getOffsetFromVisible(this.node, {
+			width: this.getWidth(true),
+			height: this.getHeight(true)
+		});
 
-    if (this.isDismountingNeeded) {
-      this.mount();
-    }
+		if (!this.overflowing) {
+			this.overflowing = {};
+		}
 
-    if (this.unbindOutClickEvent) {
-      this.unbindOutClickEvent();
-    }
-  }
+		if (offset.left < 0) {
+			this.overflowing.left = offset.left;
 
-  toggle() {
-    this.isOpen() ? this.close() : this.open();
-  }
+			this.node.setAttribute('overflowing-left', '');
 
-  isOpen() {
-    return this.state === PanelComponentStates.Open;
-  }
+			if (offset.left < offset.right) {
+				this.node.setAttribute('x-direction', 'right');
+			}
+		}
 
-  isClosed() {
-    return this.state === PanelComponentStates.Closed;
-  }
+		if (offset.right < 0) {
+			this.overflowing.right = offset.right;
 
-  bindOutClickEvent() {
-    let onClick = (e) => {
+			this.node.setAttribute('overflowing-right', '');
 
-      if (!this.node.contains(e.target)) {
-        this.close();
-      }
-    };
+			if (offset.left > offset.right) {
+				this.node.setAttribute('x-direction', 'left');
+			}
+		}
 
-    document.documentElement.addEventListener('pointerup', onClick);
+		if (offset.bottom < 0) {
+			this.overflowing.bottom = offset.bottom;
 
-    this.unbindOutClickEvent = () => {
-      document.documentElement.removeEventListener('pointerup', onClick);
-    };
-  }
+			this.node.setAttribute('overflowing-bottom', '');
 
-  getWidth(withOverflowingPart?) {
-    return this.node.offsetWidth;
-  }
+			if (offset.top > offset.bottom) {
+				this.node.setAttribute('y-direction', 'top');
+			}
+		}
 
-  getHeight(withOverflowingPart?) {
-    return this.node.offsetHeight;
-  }
+		if (offset.top < 0) {
+			this.overflowing.top = offset.top;
 
-  dismount() {
-    const boundingClientRect = this.node.getBoundingClientRect();
-    const computedStyle = getComputedStyle(this.node);
-    let nodeStyle = this.node.style;
-    this._avatar = this.node.cloneNode(true) as HTMLElement;
-    this._avatar.style.opacity = '0';
-    this._originalAttributes = {
-      style: this.node.getAttribute('style')
-    };
+			this.node.setAttribute('overflowing-top', '');
 
-    nodeStyle.position = 'absolute';
-    nodeStyle.left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)) + 'px';
-    nodeStyle.top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)) + 'px';
-    nodeStyle.width = this.getWidth() + 'px';
-    nodeStyle.height = this.getHeight() + 'px';
+			if (offset.top < offset.bottom) {
+				this.node.setAttribute('y-direction', 'bottom');
+			}
+		}
 
-    this._originalParent = this.node.parentElement;
+		if (this.onOpen) {
+			this.onOpen();
+		}
 
-    this.node.parentNode.insertBefore(this._avatar, this.node.nextSibling);
+		setTimeout(() => {
+			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
+				if (!this.node.contains(e.target as Node)) {
+					this.close();
+				}
+			});
+		}, 0);
+	}
 
-    document.body.appendChild(this.node);
-  }
+	onClose?();
 
-  mount() {
-    for (let attributeKey in this._originalAttributes) {
-      const val = this._originalAttributes[attributeKey];
+	close() {
+		if (this.isClosed()) { return; }
 
-      if (val === null) {
-        this.node.removeAttribute(attributeKey);
-      } else {
-        this.node.setAttribute(attributeKey, val || '');
-      }
-    }
+		this.state = PanelComponentStates.Closed;
 
-    if (document.documentElement.contains(this._avatar)) {
-      this._avatar.parentNode.insertBefore(this.node, this._avatar.nextSibling);
-    } else {
-      this.node.parentElement.removeChild(this.node);
-    }
+		if (this._isDismounted) {
+			this.mount();
+		}
 
-    if (this._avatar) {
-      this._avatar.parentElement.removeChild(this._avatar);
-    }
+		this.node.removeAttribute('x-direction');
+		this.node.removeAttribute('y-direction');
 
-    delete this._avatar;
-    delete this._originalParent;
-    delete this._originalAttributes;
-  }
+		if (this.overflowing) {
+			for (let key in this.overflowing) {
+				this.node.removeAttribute(`overflowing-${key}`)
+			}
+		}
 
-  unbindOutClickEvent?();
+		if (this.onClose) {
+			this.onClose();
+		}
+
+		this.removeListeners(LISTENER_NAMESPACES.OPENING);
+	}
+
+	toggle() {
+		this.isOpen() ? this.close() : this.open();
+	}
+
+	isOpen() {
+		return this.state === PanelComponentStates.Open;
+	}
+
+	isClosed() {
+		return this.state === PanelComponentStates.Closed;
+	}
+
+	getWidth(withOverflowingPart?) {
+		return this.node.offsetWidth;
+	}
+
+	getHeight(withOverflowingPart?) {
+		return this.node.offsetHeight;
+	}
+
+	dismount() {
+		const boundingClientRect = this.node.getBoundingClientRect();
+		const computedStyle = getComputedStyle(this.node);
+		let nodeStyle = this.node.style;
+		this._avatar = this.node.cloneNode(true) as HTMLElement;
+		this._avatar.style.opacity = '0';
+		this._originalAttributes = {
+			style: this.node.getAttribute('style')
+		};
+
+		this._originalParent = this.node.parentElement;
+
+		this.node.parentNode.insertBefore(this._avatar, this.node.nextSibling);
+
+		// we have to append avatar before this.node is dismounted. case:
+		// 1. scroll the parent to the bottom
+		// 2. dismount panel
+		// the scroll of the parent is changed
+
+		nodeStyle.position = 'absolute';
+		nodeStyle.left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)) + 'px';
+		nodeStyle.top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)) + 'px';
+		nodeStyle.width = this.getWidth() + 'px';
+		nodeStyle.height = this.getHeight() + 'px';
+		nodeStyle.zIndex = '9999';
+
+		document.body.appendChild(this.node);
+
+		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.close.bind(this), {useCapture: true});
+		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'resize', this.close.bind(this));
+
+		this._isDismounted = true;
+	}
+
+	addListener(namespace, elem, event, handler, options?: Listener.IOptions) {
+		if (!this._listeners) {
+			this._listeners = {};
+		}
+
+		if (!this._listeners[namespace]) {
+			this._listeners[namespace] = [];
+		}
+
+		this._listeners[namespace].push(this.DOMService.listen(elem, event, handler, options));
+	}
+
+	removeListeners(namespace) {
+		this._listeners[namespace].forEach((listener: Listener) => listener.unbind());
+	}
+
+	mount() {
+		for (let attributeKey in this._originalAttributes) {
+			const val = this._originalAttributes[attributeKey];
+
+			if (val === null) {
+				this.node.removeAttribute(attributeKey);
+			} else {
+				this.node.setAttribute(attributeKey, val || '');
+			}
+		}
+
+		if (document.documentElement.contains(this._avatar)) {
+			this._avatar.parentNode.insertBefore(this.node, this._avatar.nextSibling);
+		} else {
+			this.node.parentElement.removeChild(this.node);
+		}
+
+		if (this._avatar) {
+			this._avatar.parentElement.removeChild(this._avatar);
+		}
+
+		this.removeListeners(LISTENER_NAMESPACES.DISMOUNTING);
+
+		delete this._avatar;
+		delete this._originalParent;
+		delete this._originalAttributes;
+
+		this._isDismounted = false;
+	}
 }
