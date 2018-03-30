@@ -90,6 +90,8 @@ export class DOMService {
 			this.KEYCODES.SEMI_COLON = 59;
 		}
 
+		document.addEventListener('keydown', this.onDocumentKeyDown.bind(this));
+		document.addEventListener('keyup', this.onDocumentKeyUp.bind(this));
 		document.addEventListener('pointermove', this.onDocumentPointerMove.bind(this));
 		document.addEventListener('pointerdown', this.onDocumentPointerDown.bind(this));
 		document.addEventListener('pointerup', this.onDocumentPointerUp.bind(this));
@@ -98,6 +100,20 @@ export class DOMService {
 
 		this.refreshViewport();
 		this.refreshScroll();
+	}
+
+	pressedKeys = [];
+
+	onDocumentKeyDown(e) {
+		this.pressedKeys.push(e.keyCode);
+	}
+
+	onDocumentKeyUp(e) {
+		this.pressedKeys.splice(this.pressedKeys.indexOf(e.keyCode))
+	}
+
+	isKeyPressed(keyCode) {
+		return this.pressedKeys.includes(keyCode);
 	}
 
 	onWindowResize() {
