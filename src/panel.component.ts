@@ -11,6 +11,11 @@ const LISTENER_NAMESPACES = {
 	DISMOUNTING: 'dismounting',
 };
 
+interface IDismountingParams {
+	left?: number,
+	top?: number,
+}
+
 export class PanelComponent {
 	DOMService: DOMService;
 	state: PanelComponentStates = PanelComponentStates.Closed;
@@ -39,19 +44,31 @@ export class PanelComponent {
 
 	onOpen?();
 
-	open() {
+	postponeOverflowCalculating?: boolean;
+
+	async open(params: { dismountingParams?: IDismountingParams } = {}) {
 		if (this.isOpen()) { return; }
+
+		let { dismountingParams } = params;
 
 		this.state = PanelComponentStates.Open;
 
-		if (this.isDismountingNeeded) {
-			this.dismount();
+		if (this.postponeOverflowCalculating) {
+			await new Promise((resolve) => {
+				setTimeout(() => {
+					resolve();
+				}, 0);
+			});
 		}
 
 		const offset = this.DOMService.getOffsetFromVisible(this.node, {
 			width: this.getWidth(true),
 			height: this.getHeight(true)
 		});
+
+		if (this.isDismountingNeeded) {
+			this.dismount(dismountingParams);
+		}
 
 		if (!this.overflowing) {
 			this.overflowing = {};
@@ -97,6 +114,8 @@ export class PanelComponent {
 			}
 		}
 
+		this.node.setAttribute('open', 'true');
+
 		if (this.onOpen) {
 			this.onOpen();
 		}
@@ -135,6 +154,8 @@ export class PanelComponent {
 		}
 
 		this.removeListeners(LISTENER_NAMESPACES.OPENING);
+
+		this.node.removeAttribute('open');
 	}
 
 	toggle() {
@@ -157,9 +178,13 @@ export class PanelComponent {
 		return this.node.offsetHeight;
 	}
 
-	dismount() {
+	dismount(params: IDismountingParams = {}) {
 		const boundingClientRect = this.node.getBoundingClientRect();
 		const computedStyle = getComputedStyle(this.node);
+		let {
+			left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)),
+			top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)),
+		} = params;
 		let nodeStyle = this.node.style;
 		this._avatar = this.node.cloneNode(true) as HTMLElement;
 		this._avatar.style.opacity = '0';
@@ -177,8 +202,8 @@ export class PanelComponent {
 		// the scroll of the parent is changed
 
 		nodeStyle.position = 'absolute';
-		nodeStyle.left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)) + 'px';
-		nodeStyle.top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)) + 'px';
+		nodeStyle.left = left + 'px';
+		nodeStyle.top = top + 'px';
 		nodeStyle.width = this.getWidth() + 'px';
 		nodeStyle.height = this.getHeight() + 'px';
 		nodeStyle.zIndex = '9999';
