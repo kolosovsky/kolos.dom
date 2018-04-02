@@ -17,10 +17,22 @@ interface IDismountingParams {
 }
 
 export class PanelComponent {
+	// REQUIRED DEPENDENCIES
 	DOMService: DOMService;
+
+	// CONFIGURATION
+	get isDismountingNeeded() { return false; };
+
+	get postponeOverflowCalculating() { return false; };
+
+	// EVENTS
+	onOpen?();
+
+	onClose?();
+
+	// PUBLIC PROPERTIES
 	state: PanelComponentStates = PanelComponentStates.Closed;
 	node: HTMLElement;
-	isDismountingNeeded?: boolean;
 	overflowing?: {
 		left?: number,
 		right?: number,
@@ -28,6 +40,7 @@ export class PanelComponent {
 		bottom?: number,
 	};
 
+	// PRIVATE PROPERTIES
 	private _avatar?: HTMLElement;
 	private _originalParent?: HTMLElement;
 	private _originalAttributes?: {
@@ -38,18 +51,14 @@ export class PanelComponent {
 		[prop: string]: Listener[]
 	};
 
-	constructor(node) {
+	constructor(node: HTMLElement) {
 		this.node = node;
 	}
-
-	onOpen?();
-
-	postponeOverflowCalculating?: boolean;
 
 	async open(params: { dismountingParams?: IDismountingParams } = {}) {
 		if (this.isOpen()) { return; }
 
-		let { dismountingParams } = params;
+		let {dismountingParams} = params;
 
 		this.state = PanelComponentStates.Open;
 
@@ -122,14 +131,15 @@ export class PanelComponent {
 
 		setTimeout(() => {
 			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
-				if (!this.node.contains(e.target as Node)) {
+				const isInnerClick = this.node.contains(e.target as Node);
+				let needToClose = !isInnerClick;
+
+				if (needToClose) {
 					this.close();
 				}
 			});
 		}, 0);
 	}
-
-	onClose?();
 
 	close() {
 		if (this.isClosed()) { return; }
