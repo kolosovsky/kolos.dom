@@ -14,6 +14,7 @@ const LISTENER_NAMESPACES = {
 interface IDismountingParams {
 	left?: number,
 	top?: number,
+	avatar?: HTMLElement,
 }
 
 export class PanelComponent {
@@ -60,7 +61,16 @@ export class PanelComponent {
 
 		let {dismountingParams} = params;
 
+		if (this.isDismountingNeeded) {
+			this.dismount(dismountingParams);
+		}
+
 		this.state = PanelComponentStates.Open;
+		this.node.setAttribute('open', 'true');
+
+		if (this.onOpen) {
+			this.onOpen();
+		}
 
 		if (this.postponeOverflowCalculating) {
 			await new Promise((resolve) => {
@@ -70,14 +80,56 @@ export class PanelComponent {
 			});
 		}
 
+		this.setOverflowingAttributes();
+
+		setTimeout(() => {
+			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
+				const isInnerClick = this.node.contains(e.target as Node);
+				let needToClose = !isInnerClick;
+
+				if (needToClose) {
+					this.close();
+				}
+			});
+		}, 0);
+	}
+
+	close() {
+		if (this.isClosed()) { return; }
+
+		this.state = PanelComponentStates.Closed;
+		this.node.removeAttribute('open');
+
+		if (this._isDismounted) {
+			this.mount();
+		}
+
+		this.removeOverflowingAttributes();
+
+		if (this.onClose) {
+			this.onClose();
+		}
+
+		this.removeListeners(LISTENER_NAMESPACES.OPENING);
+	}
+
+	toggle() {
+		this.isOpen() ? this.close() : this.open();
+	}
+
+	isOpen() {
+		return this.state === PanelComponentStates.Open;
+	}
+
+	isClosed() {
+		return this.state === PanelComponentStates.Closed;
+	}
+
+	setOverflowingAttributes() {
 		const offset = this.DOMService.getOffsetFromVisible(this.node, {
 			width: this.getWidth(true),
 			height: this.getHeight(true)
 		});
-
-		if (this.isDismountingNeeded) {
-			this.dismount(dismountingParams);
-		}
 
 		if (!this.overflowing) {
 			this.overflowing = {};
@@ -123,33 +175,10 @@ export class PanelComponent {
 			}
 		}
 
-		this.node.setAttribute('open', 'true');
-
-		if (this.onOpen) {
-			this.onOpen();
-		}
-
-		setTimeout(() => {
-			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
-				const isInnerClick = this.node.contains(e.target as Node);
-				let needToClose = !isInnerClick;
-
-				if (needToClose) {
-					this.close();
-				}
-			});
-		}, 0);
+		this.node.setAttribute('overflowing-calculated', 'true');
 	}
 
-	close() {
-		if (this.isClosed()) { return; }
-
-		this.state = PanelComponentStates.Closed;
-
-		if (this._isDismounted) {
-			this.mount();
-		}
-
+	removeOverflowingAttributes() {
 		this.node.removeAttribute('x-direction');
 		this.node.removeAttribute('y-direction');
 
@@ -159,25 +188,7 @@ export class PanelComponent {
 			}
 		}
 
-		if (this.onClose) {
-			this.onClose();
-		}
-
-		this.removeListeners(LISTENER_NAMESPACES.OPENING);
-
-		this.node.removeAttribute('open');
-	}
-
-	toggle() {
-		this.isOpen() ? this.close() : this.open();
-	}
-
-	isOpen() {
-		return this.state === PanelComponentStates.Open;
-	}
-
-	isClosed() {
-		return this.state === PanelComponentStates.Closed;
+		this.node.removeAttribute('overflowing-calculated');
 	}
 
 	getWidth(withOverflowingPart?) {
@@ -194,17 +205,18 @@ export class PanelComponent {
 		let {
 			left = (boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft)),
 			top = (boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop)),
+			avatar = this.node.cloneNode(true) as HTMLElement,
 		} = params;
 		let nodeStyle = this.node.style;
-		this._avatar = this.node.cloneNode(true) as HTMLElement;
-		this._avatar.style.opacity = '0';
+		this._avatar = avatar;
 		this._originalAttributes = {
 			style: this.node.getAttribute('style')
 		};
-
 		this._originalParent = this.node.parentElement;
 
-		this.node.parentNode.insertBefore(this._avatar, this.node.nextSibling);
+		avatar.style.opacity = '0';
+
+		this.node.parentNode.insertBefore(avatar, this.node.nextSibling);
 
 		// we have to append avatar before this.node is dismounted. case:
 		// 1. scroll the parent to the bottom
