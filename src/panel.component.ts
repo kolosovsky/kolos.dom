@@ -223,11 +223,11 @@ export class PanelComponent {
 		// 2. dismount panel
 		// the scroll of the parent is changed
 
+		nodeStyle.width = this.getWidth() + 'px';
+		nodeStyle.height = this.getHeight() + 'px';
 		nodeStyle.position = 'absolute';
 		nodeStyle.left = left + 'px';
 		nodeStyle.top = top + 'px';
-		nodeStyle.width = this.getWidth() + 'px';
-		nodeStyle.height = this.getHeight() + 'px';
 		nodeStyle.zIndex = '9999';
 
 		document.body.appendChild(this.node);
