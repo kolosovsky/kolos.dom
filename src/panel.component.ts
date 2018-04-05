@@ -232,10 +232,16 @@ export class PanelComponent {
 
 		document.body.appendChild(this.node);
 
-		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.close.bind(this), {useCapture: true});
 		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'resize', this.close.bind(this));
+		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.onDocumentScroll.bind(this), {useCapture: true});
 
 		this._isDismounted = true;
+	}
+
+	onDocumentScroll(e) {
+		if (this.node !== e.target && !this.node.contains(e.target)) {
+			this.close();
+		}
 	}
 
 	addListener(namespace, elem, event, handler, options?: Listener.IOptions) {
