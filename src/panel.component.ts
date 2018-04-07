@@ -216,8 +216,6 @@ export class PanelComponent {
 
 		avatar.style.opacity = '0';
 
-		this.node.parentNode.insertBefore(avatar, this.node.nextSibling);
-
 		// we have to append avatar before this.node is dismounted. case:
 		// 1. scroll the parent to the bottom
 		// 2. dismount panel
@@ -229,6 +227,8 @@ export class PanelComponent {
 		nodeStyle.left = left + 'px';
 		nodeStyle.top = top + 'px';
 		nodeStyle.zIndex = '9999';
+
+		this.node.parentNode.insertBefore(avatar, this.node.nextSibling);
 
 		document.body.appendChild(this.node);
 
