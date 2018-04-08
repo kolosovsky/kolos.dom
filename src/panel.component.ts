@@ -84,7 +84,10 @@ export class PanelComponent {
 
 		this.setOverflowingAttributes();
 
-
+		this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'keyup', this.close.bind(this), {
+			keyCode: this.DOMService.KEYCODES.ESCAPE,
+			queued: true
+		});
 
 		setTimeout(() => {
 			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
@@ -248,7 +251,7 @@ export class PanelComponent {
 		}
 	}
 
-	addListener(namespace, elem, event, handler, options?: Listener.IOptions) {
+	addListener(namespace, elem, type, handler, options?: Listener.IOptions) {
 		if (!this._listeners) {
 			this._listeners = {};
 		}
@@ -257,11 +260,13 @@ export class PanelComponent {
 			this._listeners[namespace] = [];
 		}
 
-		this._listeners[namespace].push(this.DOMService.listen(elem, event, handler, options));
+		this._listeners[namespace].push(this.DOMService.listen(elem, type, handler, options));
 	}
 
 	removeListeners(namespace) {
 		this._listeners[namespace].forEach((listener: Listener) => listener.unbind());
+
+		delete this._listeners[namespace];
 	}
 
 	mount() {

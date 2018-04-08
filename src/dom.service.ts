@@ -170,20 +170,8 @@ export class DOMService {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 	}
 
-	queuedListeners = new Map();
-
-	listen(elem: HTMLElement | Window, event: string, handler, options?: Listener.IOptions) {
-		let listener = new Listener(elem, event, handler, options);
-
-		/*if (options.queued) {
-			if (!this.queuedListeners.has(elem)) {
-				this.queuedListeners.set(elem, {});
-			}
-
-			this.queuedListeners.get(elem, );
-		}*/
-
-		return listener;
+	listen(elem: HTMLElement | Window, type: string, handler, options?: Listener.IOptions) {
+		return new Listener(elem, type, handler, options);
 	}
 
 	getOffset(el) {

@@ -2,4 +2,4 @@
 
 ## Warnings
 - Some classes use dom pointer events
-- Some classes use ES6 Maps
+- Some classes use ES6 Symbols, Maps
