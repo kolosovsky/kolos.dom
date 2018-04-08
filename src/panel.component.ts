@@ -26,6 +26,8 @@ export class PanelComponent {
 
 	get postponeOverflowCalculating() { return false; };
 
+	get closeByEscape() { return true; };
+
 	// EVENTS
 	onOpen?();
 
@@ -81,6 +83,8 @@ export class PanelComponent {
 		}
 
 		this.setOverflowingAttributes();
+
+
 
 		setTimeout(() => {
 			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {

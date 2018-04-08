@@ -109,7 +109,7 @@ export class DOMService {
 	}
 
 	onDocumentKeyUp(e) {
-		this.pressedKeys.splice(this.pressedKeys.indexOf(e.keyCode))
+		this.pressedKeys.splice(this.pressedKeys.indexOf(e.keyCode));
 	}
 
 	isKeyPressed(keyCode) {
@@ -170,8 +170,20 @@ export class DOMService {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 	}
 
+	queuedListeners = new Map();
+
 	listen(elem: HTMLElement | Window, event: string, handler, options?: Listener.IOptions) {
-		return new Listener(elem, event, handler, options);
+		let listener = new Listener(elem, event, handler, options);
+
+		/*if (options.queued) {
+			if (!this.queuedListeners.has(elem)) {
+				this.queuedListeners.set(elem, {});
+			}
+
+			this.queuedListeners.get(elem, );
+		}*/
+
+		return listener;
 	}
 
 	getOffset(el) {

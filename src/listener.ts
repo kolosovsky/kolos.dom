@@ -21,5 +21,6 @@ export namespace Listener {
 	export interface IOptions {
 		useCapture?: boolean,
 		namespace?: string,
+		queued?: boolean,
 	}
 }
