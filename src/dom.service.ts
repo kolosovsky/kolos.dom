@@ -161,8 +161,11 @@ export class DOMService {
 	}
 
 	isPointerPressed = 0;
+	lastPointerDownEvent: Event;
 
-	onDocumentPointerDown() {
+	onDocumentPointerDown(e) {
+		this.lastPointerDownEvent = e;
+
 		this.isPointerPressed++;
 	}
 
