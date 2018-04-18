@@ -29,7 +29,7 @@ export class PanelComponent {
 	get closeByEscape() { return true; };
 
 	// EVENTS
-	onOpen?();
+	onOpen?(params?);
 
 	onClose?();
 
@@ -58,7 +58,7 @@ export class PanelComponent {
 		this.node = node;
 	}
 
-	async open(params: { dismountingParams?: IDismountingParams } = {}) {
+	async open(params: { dismountingParams?: IDismountingParams, data?: any } = {}) {
 		if (this.isOpen()) { return; }
 
 		let {dismountingParams} = params;
@@ -71,7 +71,7 @@ export class PanelComponent {
 		this.node.setAttribute('open', 'true');
 
 		if (this.onOpen) {
-			this.onOpen();
+			this.onOpen(params);
 		}
 
 		if (this.postponeOverflowCalculating) {
