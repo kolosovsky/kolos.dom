@@ -4,6 +4,7 @@ const globalListenersSymbol = Symbol();
 export class Listener {
 	private _handlerWrap?: (e) => any;
 	private _queueKye?: string;
+	private _isBound?: boolean;
 
 	// options
 	queued?: boolean;
@@ -34,6 +35,8 @@ export class Listener {
 	}
 
 	bind() {
+		if (this._isBound) { return; }
+
 		let { node, type } = this;
 
 		if (this.queued) {
@@ -65,9 +68,13 @@ export class Listener {
 		} else {
 			node.addEventListener(type, this._handlerWrap, this.useCapture);
 		}
+
+		this._isBound = true;
 	}
 
 	unbind() {
+		if (!this._isBound) { return; }
+
 		let { node, type } = this;
 
 		if (this.queued) {
@@ -84,6 +91,8 @@ export class Listener {
 		} else {
 			node.removeEventListener(type, this._handlerWrap, this.useCapture);
 		}
+
+		delete this._isBound;
 	}
 }
 
