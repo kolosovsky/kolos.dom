@@ -401,4 +401,7 @@ export class DOMService {
 		return fd;
 	}
 
+	isRightMouseButtonEvent(event) {
+		return event.which === 3;
+	}
 }

@@ -61,6 +61,15 @@ export class PanelComponent {
 	async open(params: { dismountingParams?: IDismountingParams, data?: any } = {}) {
 		if (this.isOpen()) { return; }
 
+		// case (windows, chrome):
+		// open panel using mouseup event (event.which === 3) with coordinates under the mouse
+		// contextmenu event will fire just after opening
+		const contextMenuListener = this.DOMService.listen(this.node, 'contextmenu', this.onContextMenu.bind(this));
+
+		setTimeout(() => {
+			contextMenuListener.unbind();
+		}, 0);
+
 		let {dismountingParams} = params;
 
 		if (this.isDismountingNeeded) {
@@ -99,6 +108,11 @@ export class PanelComponent {
 				}
 			});
 		}, 0);
+	}
+
+	onContextMenu(e) {
+		e.preventDefault();
+		return false;
 	}
 
 	close() {
