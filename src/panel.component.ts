@@ -1,6 +1,8 @@
 import { DOMService } from './dom.service';
 import { Listener } from "./listener";
 
+const NODE_PROP_KEY = Symbol();
+
 export enum PanelComponentStates {
 	Open = 'open',
 	Closed = 'closed'
@@ -9,6 +11,7 @@ export enum PanelComponentStates {
 const LISTENER_NAMESPACES = {
 	OPENING: 'opening',
 	DISMOUNTING: 'dismounting',
+	CONTEXT_MENU_PREVENTING: 'contextmenu',
 };
 
 interface IDismountingParams {
@@ -35,7 +38,6 @@ export class PanelComponent {
 
 	// PUBLIC PROPERTIES
 	state: PanelComponentStates = PanelComponentStates.Closed;
-	node: HTMLElement;
 	overflowing?: {
 		left?: number,
 		right?: number,
@@ -44,6 +46,7 @@ export class PanelComponent {
 	};
 
 	// PRIVATE PROPERTIES
+	private _node: HTMLElement;
 	private _avatar?: HTMLElement;
 	private _originalParent?: HTMLElement;
 	private _originalAttributes?: {
@@ -58,16 +61,32 @@ export class PanelComponent {
 		this.node = node;
 	}
 
+	set node(node: HTMLElement) {
+		if (node) {
+			if (this._node) {
+				delete this._node[NODE_PROP_KEY];
+			}
+
+			this._node = node;
+
+			node[NODE_PROP_KEY] = this;
+		}
+	}
+
+	get node() {
+		return this._node;
+	}
+
 	async open(params: { dismountingParams?: IDismountingParams, data?: any } = {}) {
 		if (this.isOpen()) { return; }
 
 		// case (windows, chrome):
 		// open panel using mouseup event (event.which === 3) with coordinates under the mouse
 		// contextmenu event will fire just after opening
-		const contextMenuListener = this.DOMService.listen(this.node, 'contextmenu', this.onContextMenu.bind(this));
+		this.addListener(LISTENER_NAMESPACES.CONTEXT_MENU_PREVENTING, this.node, 'contextmenu', this.onContextMenu.bind(this));
 
 		setTimeout(() => {
-			contextMenuListener.unbind();
+			this.removeListeners(LISTENER_NAMESPACES.CONTEXT_MENU_PREVENTING);
 		}, 0);
 
 		let {dismountingParams} = params;
@@ -101,13 +120,25 @@ export class PanelComponent {
 		setTimeout(() => {
 			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
 				const isInnerClick = this.node.contains(e.target as Node);
-				let needToClose = !isInnerClick;
 
-				if (needToClose) {
-					this.close();
+				if (!isInnerClick) {
+					let closestPanel: PanelComponent;
+					let currentNode = e.target;
+
+					do {
+						closestPanel = currentNode[NODE_PROP_KEY];
+					} while (!closestPanel && (currentNode = currentNode.parentElement));
+
+					if (!closestPanel || !this.containsPanel(closestPanel)) {
+						this.close();
+					}
 				}
 			});
 		}, 0);
+	}
+
+	containsPanel(panel: PanelComponent) {
+		return panel._isDismounted ? this.node.contains(panel._avatar) : this.node.contains(panel.node);
 	}
 
 	onContextMenu(e) {
@@ -283,6 +314,18 @@ export class PanelComponent {
 		delete this._listeners[namespace];
 	}
 
+	removeAllListeners() {
+		for (let key in this._listeners) {
+			let list = this._listeners[key];
+
+			for (let i = 0, length = list.length; i < length; i++) {
+				let listener = list[i];
+
+				listener.unbind();
+			}
+		}
+	}
+
 	mount() {
 		for (let attributeKey in this._originalAttributes) {
 			const val = this._originalAttributes[attributeKey];
@@ -311,5 +354,17 @@ export class PanelComponent {
 		delete this._originalAttributes;
 
 		this._isDismounted = false;
+	}
+
+	// for angular
+	ngOnDestroy() {
+		this.destroy();
+	}
+
+	destroy() {
+		this.removeAllListeners();
+
+		delete this.node[NODE_PROP_KEY];
+		delete this.node;
 	}
 }
