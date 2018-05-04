@@ -26,10 +26,9 @@ export class PanelComponent {
 
 	// CONFIGURATION
 	get isDismountingNeeded() { return false; };
-
 	get postponeOverflowCalculating() { return false; };
-
 	get closeByEscape() { return true; };
+	get closeByOutClick() { return true; };
 
 	// EVENTS
 	onOpen?(params?);
@@ -118,22 +117,24 @@ export class PanelComponent {
 		});
 
 		setTimeout(() => {
-			this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
-				const isInnerClick = this.node.contains(e.target as Node);
+			if (this.closeByOutClick) {
+				this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
+					const isInnerClick = this.node.contains(e.target as Node);
 
-				if (!isInnerClick) {
-					let closestPanel: PanelComponent;
-					let currentNode = e.target;
+					if (!isInnerClick) {
+						let closestPanel: PanelComponent;
+						let currentNode = e.target;
 
-					do {
-						closestPanel = currentNode[NODE_PROP_KEY];
-					} while (!closestPanel && (currentNode = currentNode.parentElement));
+						do {
+							closestPanel = currentNode[NODE_PROP_KEY];
+						} while (!closestPanel && (currentNode = currentNode.parentElement));
 
-					if (!closestPanel || !this.containsPanel(closestPanel)) {
-						this.close();
+						if (!closestPanel || !this.containsPanel(closestPanel)) {
+							this.close();
+						}
 					}
-				}
-			});
+				});
+			}
 		}, 0);
 	}
 
@@ -309,9 +310,11 @@ export class PanelComponent {
 	}
 
 	removeListeners(namespace) {
-		this._listeners[namespace].forEach((listener: Listener) => listener.unbind());
+		if (this._listeners[namespace]) {
+			this._listeners[namespace].forEach((listener: Listener) => listener.unbind());
 
-		delete this._listeners[namespace];
+			delete this._listeners[namespace];
+		}
 	}
 
 	removeAllListeners() {
