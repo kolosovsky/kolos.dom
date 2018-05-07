@@ -256,8 +256,8 @@ export class PanelComponent {
 		const boundingClientRect = this.node.getBoundingClientRect();
 		const computedStyle = getComputedStyle(this.node);
 		let {
-			left = boundingClientRect.left + document.documentElement.scrollLeft - parseFloat(computedStyle.marginLeft),
-			top = boundingClientRect.top + document.documentElement.scrollTop - parseFloat(computedStyle.marginTop),
+			left = boundingClientRect.left + this.DOMService.scroll.x - parseFloat(computedStyle.marginLeft),
+			top = boundingClientRect.top + this.DOMService.scroll.y - parseFloat(computedStyle.marginTop),
 			avatar = this.node.cloneNode(true) as HTMLElement,
 		} = params;
 		let nodeStyle = this.node.style;
