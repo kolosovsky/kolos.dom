@@ -1,8 +1,6 @@
 import { DOMService } from './dom.service';
 import { Listener } from "./listener";
 
-const NODE_PROP_KEY = Symbol();
-
 export enum PanelComponentStates {
 	Open = 'open',
 	Closed = 'closed'
@@ -14,6 +12,33 @@ const LISTENER_NAMESPACES = {
 	CONTEXT_MENU_PREVENTING: 'contextmenu',
 };
 
+const DIRECTIONS = [
+	{
+		key: 'left',
+		oppositeKey: 'right',
+		axisKey: 'x',
+		factor: -1,
+	},
+	{
+		key: 'right',
+		oppositeKey: 'left',
+		axisKey: 'x',
+		factor: 1
+	},
+	{
+		key: 'top',
+		oppositeKey: 'bottom',
+		axisKey: 'y',
+		factor: -1,
+	},
+	{
+		key: 'bottom',
+		oppositeKey: 'top',
+		axisKey: 'y',
+		factor: 1
+	}
+];
+
 interface IDismountingParams {
 	left?: number,
 	top?: number,
@@ -21,13 +46,16 @@ interface IDismountingParams {
 }
 
 export class PanelComponent {
+	static NODE_PROP_KEY = Symbol();
+
 	// REQUIRED DEPENDENCIES
 	DOMService: DOMService;
 
 	// CONFIGURATION
 	get isDismountingNeeded() { return false; };
-	get isAdjustingNeeded() { return false; };
-	get postponeOverflowCalculating() { return false; };
+	get isOverflowingAttributesNeeded() { return false; };
+	get isFittingNeeded() { return false; };
+	get postponePositionAdjusting() { return false; };
 	get closeByEscape() { return true; };
 	get closeByOutClick() { return true; };
 
@@ -59,6 +87,8 @@ export class PanelComponent {
 			y?: number,
 		}
 	};
+	private _isFitted?: boolean;
+	private _isOverflowAttributesSet?: boolean;
 	private _listeners?: {
 		[prop: string]: Listener[]
 	};
@@ -70,12 +100,12 @@ export class PanelComponent {
 	set node(node: HTMLElement) {
 		if (node) {
 			if (this._node) {
-				delete this._node[NODE_PROP_KEY];
+				delete this._node[PanelComponent.NODE_PROP_KEY];
 			}
 
 			this._node = node;
 
-			node[NODE_PROP_KEY] = this;
+			node[PanelComponent.NODE_PROP_KEY] = this;
 		}
 	}
 
@@ -97,6 +127,8 @@ export class PanelComponent {
 
 		let {dismountingParams} = params;
 
+		this.saveOriginalAttribute('style');
+
 		if (this.isDismountingNeeded) {
 			this.dismount(dismountingParams);
 		}
@@ -108,7 +140,7 @@ export class PanelComponent {
 			this.onOpen(params);
 		}
 
-		if (this.postponeOverflowCalculating) {
+		if (this.postponePositionAdjusting) {
 			await new Promise((resolve) => {
 				setTimeout(() => {
 					resolve();
@@ -116,7 +148,13 @@ export class PanelComponent {
 			});
 		}
 
-		this.setOverflowingAttributes();
+		if (this.isOverflowingAttributesNeeded) {
+			this.setOverflowingAttributes();
+		}
+
+		if (this.isFittingNeeded) {
+			this.fit();
+		}
 
 		this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'keyup', this.close.bind(this), {
 			keyCode: this.DOMService.KEYCODES.ESCAPE,
@@ -133,7 +171,7 @@ export class PanelComponent {
 						let currentNode = e.target;
 
 						do {
-							closestPanel = currentNode[NODE_PROP_KEY];
+							closestPanel = currentNode[PanelComponent.NODE_PROP_KEY];
 						} while (!closestPanel && (currentNode = currentNode.parentElement));
 
 						if (!closestPanel || !this.containsPanel(closestPanel)) {
@@ -160,11 +198,32 @@ export class PanelComponent {
 		this.state = PanelComponentStates.Closed;
 		this.node.removeAttribute('open');
 
+		if (this._originalAttributes) {
+			for (let attributeKey in this._originalAttributes) {
+				const val = this._originalAttributes[attributeKey];
+
+				if (val === null) {
+					this.node.removeAttribute(attributeKey);
+				} else {
+					this.node.setAttribute(attributeKey, val || '');
+				}
+			}
+
+			delete this._originalAttributes;
+		}
+
 		if (this._isDismounted) {
 			this.mount();
 		}
 
-		this.removeOverflowingAttributes();
+		if (this._isOverflowAttributesSet) {
+			this.removeOverflowingAttributes();
+		}
+
+
+		if (this._isFitted) {
+			this.resetFitting();
+		}
 
 		if (this.onClose) {
 			this.onClose();
@@ -195,33 +254,6 @@ export class PanelComponent {
 			this.overflowing = {};
 		}
 
-		const DIRECTIONS = [
-			{
-				key: 'left',
-				oppositeKey: 'right',
-				axisKey: 'x',
-				factor: -1,
-			},
-			{
-				key: 'right',
-				oppositeKey: 'left',
-				axisKey: 'x',
-				factor: 1
-			},
-			{
-				key: 'top',
-				oppositeKey: 'bottom',
-				axisKey: 'y',
-				factor: -1,
-			},
-			{
-				key: 'bottom',
-				oppositeKey: 'top',
-				axisKey: 'y',
-				factor: 1
-			}
-		];
-
 		for (let i = 0, length = DIRECTIONS.length; i < length; i++) {
 			const direction = DIRECTIONS[i];
 			const directionOffset = offset[direction.key];
@@ -229,21 +261,14 @@ export class PanelComponent {
 			if (directionOffset < 0) {
 				this.overflowing[direction.key] = directionOffset;
 
-				this.node.setAttribute(`overflowing-${direction.key}`, '');
-
 				if (directionOffset < offset[direction.oppositeKey]) {
 					this.node.setAttribute(`${direction.axisKey}-direction`, direction.oppositeKey);
-
-					if (this._isDismounted && this.isAdjustingNeeded) {
-						const property = direction.axisKey === 'x' ? 'left' : 'top';
-
-						this.node.style[property] = this._dismounting.coords[direction.axisKey] + (directionOffset * direction.factor) + 'px';
-					}
 				}
 			}
 		}
 
 		this.node.setAttribute('overflowing-calculated', 'true');
+		this._isOverflowAttributesSet = true;
 	}
 
 	removeOverflowingAttributes() {
@@ -257,6 +282,35 @@ export class PanelComponent {
 		}
 
 		this.node.removeAttribute('overflowing-calculated');
+		this._isOverflowAttributesSet = false;
+	}
+
+	fit() {
+		const offset = this.DOMService.getOffsetFromVisible(this.node, {
+			width: this.getWidth(true),
+			height: this.getHeight(true)
+		});
+
+		for (let i = 0, length = DIRECTIONS.length; i < length; i++) {
+			const direction = DIRECTIONS[i];
+			const directionOffset = offset[direction.key];
+
+			if (directionOffset < 0) {
+				if (directionOffset < offset[direction.oppositeKey]) {
+					const property = direction.axisKey === 'x' ? 'left' : 'top';
+
+					this.node.style[property] = this._dismounting.coords[direction.axisKey] + (directionOffset * direction.factor) + 'px';
+				}
+			}
+		}
+
+		this.node.setAttribute('fitted-in-view', 'true');
+		this._isFitted = true;
+	}
+
+	resetFitting() {
+		this.node.removeAttribute('fitted-in-view');
+		this._isFitted = false;
 	}
 
 	getWidth(withOverflowingPart?) {
@@ -265,6 +319,14 @@ export class PanelComponent {
 
 	getHeight(withOverflowingPart?) {
 		return this.node.offsetHeight;
+	}
+
+	saveOriginalAttribute(attrName) {
+		if (!this._originalAttributes) {
+			this._originalAttributes = {};
+		}
+
+		this._originalAttributes[attrName] = this.node.getAttribute(attrName);
 	}
 
 	dismount(params: IDismountingParams = {}) {
@@ -277,9 +339,6 @@ export class PanelComponent {
 		} = params;
 		let nodeStyle = this.node.style;
 		this._avatar = avatar;
-		this._originalAttributes = {
-			style: this.node.getAttribute('style')
-		};
 		this._originalParent = this.node.parentElement;
 
 		avatar.style.opacity = '0';
@@ -351,16 +410,6 @@ export class PanelComponent {
 	}
 
 	mount() {
-		for (let attributeKey in this._originalAttributes) {
-			const val = this._originalAttributes[attributeKey];
-
-			if (val === null) {
-				this.node.removeAttribute(attributeKey);
-			} else {
-				this.node.setAttribute(attributeKey, val || '');
-			}
-		}
-
 		if (document.documentElement.contains(this._avatar)) {
 			this._avatar.parentNode.insertBefore(this.node, this._avatar.nextSibling);
 		} else {
@@ -375,7 +424,6 @@ export class PanelComponent {
 
 		delete this._avatar;
 		delete this._originalParent;
-		delete this._originalAttributes;
 
 		this._isDismounted = false;
 		delete this._dismounting;
@@ -389,7 +437,7 @@ export class PanelComponent {
 	destroy() {
 		this.removeAllListeners();
 
-		delete this.node[NODE_PROP_KEY];
+		delete this.node[PanelComponent.NODE_PROP_KEY];
 		delete this.node;
 	}
 }
