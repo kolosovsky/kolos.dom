@@ -26,6 +26,7 @@ export class PanelComponent {
 
 	// CONFIGURATION
 	get isDismountingNeeded() { return false; };
+	get isAdjustingNeeded() { return false; };
 	get postponeOverflowCalculating() { return false; };
 	get closeByEscape() { return true; };
 	get closeByOutClick() { return true; };
@@ -52,6 +53,12 @@ export class PanelComponent {
 		[prop: string]: string
 	};
 	private _isDismounted?: boolean;
+	private _dismounting?: {
+		coords?: {
+			x?: number,
+			y?: number,
+		}
+	};
 	private _listeners?: {
 		[prop: string]: Listener[]
 	};
@@ -188,43 +195,51 @@ export class PanelComponent {
 			this.overflowing = {};
 		}
 
-		if (offset.left < 0) {
-			this.overflowing.left = offset.left;
-
-			this.node.setAttribute('overflowing-left', '');
-
-			if (offset.left < offset.right) {
-				this.node.setAttribute('x-direction', 'right');
+		const DIRECTIONS = [
+			{
+				key: 'left',
+				oppositeKey: 'right',
+				axisKey: 'x',
+				factor: -1,
+			},
+			{
+				key: 'right',
+				oppositeKey: 'left',
+				axisKey: 'x',
+				factor: 1
+			},
+			{
+				key: 'top',
+				oppositeKey: 'bottom',
+				axisKey: 'y',
+				factor: -1,
+			},
+			{
+				key: 'bottom',
+				oppositeKey: 'top',
+				axisKey: 'y',
+				factor: 1
 			}
-		}
+		];
 
-		if (offset.right < 0) {
-			this.overflowing.right = offset.right;
+		for (let i = 0, length = DIRECTIONS.length; i < length; i++) {
+			const direction = DIRECTIONS[i];
+			const directionOffset = offset[direction.key];
 
-			this.node.setAttribute('overflowing-right', '');
+			if (directionOffset < 0) {
+				this.overflowing[direction.key] = directionOffset;
 
-			if (offset.left > offset.right) {
-				this.node.setAttribute('x-direction', 'left');
-			}
-		}
+				this.node.setAttribute(`overflowing-${direction.key}`, '');
 
-		if (offset.bottom < 0) {
-			this.overflowing.bottom = offset.bottom;
+				if (directionOffset < offset[direction.oppositeKey]) {
+					this.node.setAttribute(`${direction.axisKey}-direction`, direction.oppositeKey);
 
-			this.node.setAttribute('overflowing-bottom', '');
+					if (this._isDismounted && this.isAdjustingNeeded) {
+						const property = direction.axisKey === 'x' ? 'left' : 'top';
 
-			if (offset.top > offset.bottom) {
-				this.node.setAttribute('y-direction', 'top');
-			}
-		}
-
-		if (offset.top < 0) {
-			this.overflowing.top = offset.top;
-
-			this.node.setAttribute('overflowing-top', '');
-
-			if (offset.top < offset.bottom) {
-				this.node.setAttribute('y-direction', 'bottom');
+						this.node.style[property] = this._dismounting.coords[direction.axisKey] + (directionOffset * direction.factor) + 'px';
+					}
+				}
 			}
 		}
 
@@ -289,6 +304,12 @@ export class PanelComponent {
 		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.onDocumentScroll.bind(this), {useCapture: true});
 
 		this._isDismounted = true;
+		this._dismounting = {
+			coords: {
+				x: left,
+				y: top
+			}
+		};
 	}
 
 	onDocumentScroll(e) {
@@ -357,6 +378,7 @@ export class PanelComponent {
 		delete this._originalAttributes;
 
 		this._isDismounted = false;
+		delete this._dismounting;
 	}
 
 	// for angular
