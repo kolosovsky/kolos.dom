@@ -6,6 +6,9 @@ export class Listener {
 	private _queueKye?: string;
 	private _isBound?: boolean;
 
+	// configuration
+	handlerCallback?();
+
 	// options
 	queued?: boolean;
 	useCapture?: boolean;
@@ -28,6 +31,10 @@ export class Listener {
 		this._handlerWrap = (e) => {
 			if (typeof this.keyCode === 'undefined' || e.keyCode === this.keyCode) {
 				this.handler(e, this);
+
+				if (this.handlerCallback) {
+					this.handlerCallback();
+				}
 			}
 		};
 

@@ -58,6 +58,8 @@ export class PanelComponent {
 	get postponePositionAdjusting() { return false; };
 	get closeByEscape() { return true; };
 	get closeByOutClick() { return true; };
+	// implement overlay
+	get isOverlayNeeded() { return true; };
 
 	// EVENTS
 	onOpen?(params?);
