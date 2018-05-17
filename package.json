@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kolosovskiy/kolos.dom.git"
+    "url": "git+https://github.com/kolosovsky/kolos.dom.git"
   },
   "author": {
-    "name": "Ed Kolosovskiy",
-    "email": "edd.kolosovskiy@gmail.com"
+    "name": "Ed Kolosovsky",
+    "email": "edd.kolosovsky@gmail.com"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/kolosovskiy/kolos.dom/issues"
+    "url": "https://github.com/kolosovsky/kolos.dom/issues"
   },
-  "homepage": "https://github.com/kolosovskiy/kolos.dom#readme"
+  "homepage": "https://github.com/kolosovsky/kolos.dom#readme"
 }
