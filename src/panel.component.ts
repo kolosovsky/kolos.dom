@@ -166,23 +166,32 @@ export class PanelComponent {
 		setTimeout(() => {
 			if (this.closeByOutClick) {
 				this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
-					const isInnerClick = this.node.contains(e.target as Node);
-
-					if (!isInnerClick) {
-						let closestPanel: PanelComponent;
-						let currentNode = e.target;
-
-						do {
-							closestPanel = currentNode[PanelComponent.NODE_PROP_KEY];
-						} while (!closestPanel && (currentNode = currentNode.parentElement));
-
-						if (!closestPanel || !this.containsPanel(closestPanel)) {
-							this.close();
-						}
+					if (this.shouldClickCauseClosing(e)) {
+						this.close();
 					}
 				});
 			}
 		}, 0);
+	}
+
+	shouldClickCauseClosing(e) {
+		let result = false;
+		const isInnerClick = this.node.contains(e.target as Node);
+
+		if (!isInnerClick) {
+			let closestPanel: PanelComponent;
+			let currentNode = e.target;
+
+			do {
+				closestPanel = currentNode[PanelComponent.NODE_PROP_KEY];
+			} while (!closestPanel && (currentNode = currentNode.parentElement));
+
+			if (!closestPanel || !this.containsPanel(closestPanel)) {
+				result = true;
+			}
+		}
+
+		return result;
 	}
 
 	containsPanel(panel: PanelComponent) {
@@ -221,7 +230,6 @@ export class PanelComponent {
 		if (this._isOverflowAttributesSet) {
 			this.removeOverflowingAttributes();
 		}
-
 
 		if (this._isFitted) {
 			this.resetFitting();
@@ -437,6 +445,7 @@ export class PanelComponent {
 	}
 
 	destroy() {
+		this.close();
 		this.removeAllListeners();
 
 		delete this.node[PanelComponent.NODE_PROP_KEY];

@@ -22,10 +22,14 @@ interface IVisible {
 }
 
 export class DOMService {
+	IS_TOUCH_DEVICE = ('ontouchstart' in window || navigator.maxTouchPoints);
 	IS_MAC = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+	IS_WINDOWS = navigator.platform.indexOf('Win') > -1;
+	IS_LINUX = navigator.appVersion.indexOf("Linux") > -1;
 	IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 	IS_FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-	IS_TOUCH_DEVICE = ('ontouchstart' in window || navigator.maxTouchPoints);
+	IS_CHROME = !!(window as any).chrome && !!(window as any).chrome.webstore;
+
 	KEYCODES = {
 		BACKSPACE: 8,
 		TAB: 9,
