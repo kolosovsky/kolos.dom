@@ -6,12 +6,6 @@ export enum PanelComponentStates {
 	Closed = 'closed'
 }
 
-const LISTENER_NAMESPACES = {
-	OPENING: 'opening',
-	DISMOUNTING: 'dismounting',
-	CONTEXT_MENU_PREVENTING: 'contextmenu',
-};
-
 const DIRECTIONS = [
 	{
 		key: 'left',
@@ -47,6 +41,12 @@ interface IDismountingParams {
 
 export class PanelComponent {
 	static NODE_PROP_KEY = Symbol();
+
+	static LISTENER_NAMESPACES = {
+		OPENING: 'opening',
+		DISMOUNTING: 'dismounting',
+		CONTEXT_MENU_PREVENTING: 'contextmenu',
+	};
 
 	// REQUIRED DEPENDENCIES
 	DOMService: DOMService;
@@ -121,10 +121,10 @@ export class PanelComponent {
 		// case (windows, chrome):
 		// open panel using mouseup event (event.which === 3) with coordinates under the mouse
 		// contextmenu event will fire just after opening
-		this.addListener(LISTENER_NAMESPACES.CONTEXT_MENU_PREVENTING, this.node, 'contextmenu', this.onContextMenu.bind(this));
+		this.addListener(PanelComponent.LISTENER_NAMESPACES.CONTEXT_MENU_PREVENTING, this.node, 'contextmenu', this.onContextMenu.bind(this));
 
 		setTimeout(() => {
-			this.removeListeners(LISTENER_NAMESPACES.CONTEXT_MENU_PREVENTING);
+			this.removeListeners(PanelComponent.LISTENER_NAMESPACES.CONTEXT_MENU_PREVENTING);
 		}, 0);
 
 		let {dismountingParams} = params;
@@ -158,14 +158,14 @@ export class PanelComponent {
 			this.fit();
 		}
 
-		this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'keyup', this.close.bind(this), {
+		this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'keyup', this.close.bind(this), {
 			keyCode: this.DOMService.KEYCODES.ESCAPE,
 			queued: true
 		});
 
 		setTimeout(() => {
 			if (this.closeByOutClick) {
-				this.addListener(LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
+				this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
 					if (this.shouldClickCauseClosing(e)) {
 						this.close();
 					}
@@ -239,7 +239,7 @@ export class PanelComponent {
 			this.onClose();
 		}
 
-		this.removeListeners(LISTENER_NAMESPACES.OPENING);
+		this.removeListeners(PanelComponent.LISTENER_NAMESPACES.OPENING);
 	}
 
 	toggle() {
@@ -369,8 +369,8 @@ export class PanelComponent {
 
 		document.body.appendChild(this.node);
 
-		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'resize', this.close.bind(this));
-		this.addListener(LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.onDocumentScroll.bind(this), {useCapture: true});
+		this.addListener(PanelComponent.LISTENER_NAMESPACES.DISMOUNTING, window, 'resize', this.close.bind(this));
+		this.addListener(PanelComponent.LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.onDocumentScroll.bind(this), {useCapture: true});
 
 		this._isDismounted = true;
 		this._dismounting = {
@@ -430,7 +430,7 @@ export class PanelComponent {
 			this._avatar.parentElement.removeChild(this._avatar);
 		}
 
-		this.removeListeners(LISTENER_NAMESPACES.DISMOUNTING);
+		this.removeListeners(PanelComponent.LISTENER_NAMESPACES.DISMOUNTING);
 
 		delete this._avatar;
 		delete this._originalParent;
