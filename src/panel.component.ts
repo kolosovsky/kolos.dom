@@ -39,7 +39,7 @@ interface IDismountingParams {
 	avatar?: HTMLElement,
 }
 
-export class PanelComponent {
+export abstract class PanelComponent {
 	static NODE_PROP_KEY = Symbol();
 
 	static LISTENER_NAMESPACES = {
@@ -49,7 +49,7 @@ export class PanelComponent {
 	};
 
 	// REQUIRED DEPENDENCIES
-	DOMService: DOMService;
+	abstract get DOMService(): DOMService;
 
 	// CONFIGURATION
 	get isDismountingNeeded() { return false; };
