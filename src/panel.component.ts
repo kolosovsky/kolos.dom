@@ -198,6 +198,10 @@ export abstract class PanelComponent {
 		return panel._isDismounted ? this.node.contains(panel._avatar) : this.node.contains(panel.node);
 	}
 
+	containedByNode(node) {
+		return this._isDismounted ? node.contains(this._avatar) : node.contains(this.node);
+	}
+
 	onContextMenu(e) {
 		e.preventDefault();
 		return false;
