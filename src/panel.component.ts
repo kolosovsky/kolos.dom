@@ -1,5 +1,6 @@
 import { DOMService } from './dom.service';
 import { Listener } from "./listener";
+import { OneTimeListener } from "./one-time-listener";
 
 export enum PanelComponentStates {
 	Open = 'open',
@@ -163,15 +164,23 @@ export abstract class PanelComponent {
 			queued: true
 		});
 
-		setTimeout(() => {
-			if (this.closeByOutClick) {
-				this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', (e) => {
-					if (this.shouldClickCauseClosing(e)) {
-						this.close();
-					}
+		if (this.closeByOutClick) {
+			if (this.DOMService.isPointerPressed) {
+				new OneTimeListener(document.documentElement, 'pointerup', () => {
+					this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', this.onDocumentPointerup.bind(this));
 				});
+			} else {
+				setTimeout(() => {
+					this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'pointerup', this.onDocumentPointerup.bind(this));
+				}, 0);
 			}
-		}, 0);
+		}
+	}
+
+	onDocumentPointerup(e) {
+		if (this.shouldClickCauseClosing(e)) {
+			this.close();
+		}
 	}
 
 	shouldClickCauseClosing(e) {
