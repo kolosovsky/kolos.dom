@@ -40,6 +40,12 @@ interface IDismountingParams {
 	avatar?: HTMLElement,
 }
 
+interface IOpeningParams {
+	dismountingParams?: IDismountingParams;
+	data?: any;
+	closingCallback?();
+}
+
 export abstract class PanelComponent {
 	static NODE_PROP_KEY = Symbol();
 
@@ -75,6 +81,7 @@ export abstract class PanelComponent {
 		top?: number,
 		bottom?: number,
 	};
+	openingParams?: IOpeningParams;
 
 	// PRIVATE PROPERTIES
 	private _node: HTMLElement;
@@ -116,8 +123,10 @@ export abstract class PanelComponent {
 		return this._node;
 	}
 
-	async open(params: { dismountingParams?: IDismountingParams, data?: any } = {}) {
+	async open(params: IOpeningParams = {}) {
 		if (this.isOpen()) { return; }
+
+		this.openingParams = params;
 
 		// case (windows, chrome):
 		// open panel using mouseup event (event.which === 3) with coordinates under the mouse
@@ -253,6 +262,12 @@ export abstract class PanelComponent {
 		}
 
 		this.removeListeners(PanelComponent.LISTENER_NAMESPACES.OPENING);
+
+		if (this.openingParams.closingCallback) {
+			this.openingParams.closingCallback();
+		}
+
+		delete this.openingParams;
 	}
 
 	toggle() {
