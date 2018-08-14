@@ -175,7 +175,7 @@ export class DOMService {
 		this.isPointerPressed++;
 	}
 
-	onDocumentPointerUp() {
+	onDocumentPointerUp(e) {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 	}
 

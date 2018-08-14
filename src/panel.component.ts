@@ -467,6 +467,17 @@ export abstract class PanelComponent {
 		delete this._dismounting;
 	}
 
+	move(x, y, offsetFromEdge = 0) {
+		x = Math.min(x, this.DOMService.viewport.w - this.node.offsetWidth - offsetFromEdge);
+		y = Math.min(y, this.DOMService.viewport.h - this.node.offsetHeight - offsetFromEdge);
+
+		x = Math.max(x, offsetFromEdge);
+		y = Math.max(y, offsetFromEdge);
+
+		this.node.style.left = x + 'px';
+		this.node.style.top = y + 'px';
+	}
+
 	// for angular
 	ngOnDestroy() {
 		this.destroy();
