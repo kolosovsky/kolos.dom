@@ -18,7 +18,7 @@ export class Listener {
 	constructor(
 		public node: HTMLElement | Window,
 		public type: string,
-		public handler: (e: Event, listener: Listener) => any,
+		public handler?: (e: Event, listener: Listener) => any,
 		options?: Listener.IOptions
 	) {
 		if (options) {
@@ -30,7 +30,9 @@ export class Listener {
 
 		this._handlerWrap = (e) => {
 			if (typeof this.keyCode === 'undefined' || e.keyCode === this.keyCode) {
-				this.handler(e, this);
+				if (this.handler) {
+					this.handler(e, this);
+				}
 
 				if (this.handlerCallback) {
 					this.handlerCallback();
