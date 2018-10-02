@@ -410,4 +410,8 @@ export class DOMService {
 	isRightMouseButtonEvent(event) {
 		return event.which === 3;
 	}
+
+	matches(el, selector) {
+		return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
+	}
 }
