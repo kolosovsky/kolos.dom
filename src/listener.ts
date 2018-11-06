@@ -6,10 +6,9 @@ export class Listener {
 	private _queueKye?: string;
 	private _isBound?: boolean;
 
-	// configuration
 	handlerCallback?();
 
-	// options
+	options: Listener.IOptions;
 	queued?: boolean;
 	useCapture?: boolean;
 	namespace?: string;
@@ -22,6 +21,8 @@ export class Listener {
 		options?: Listener.IOptions
 	) {
 		if (options) {
+			this.options = options;
+
 			this.queued = options.queued;
 			this.useCapture = options.useCapture;
 			this.namespace = options.namespace;
@@ -36,6 +37,10 @@ export class Listener {
 
 				if (this.handlerCallback) {
 					this.handlerCallback();
+				}
+
+				if (this.options && this.options.finally) {
+					this.options.finally();
 				}
 			}
 		};
@@ -78,6 +83,10 @@ export class Listener {
 			node.addEventListener(type, this._handlerWrap, this.useCapture);
 		}
 
+		if (this.options) {
+
+		}
+
 		this._isBound = true;
 	}
 
@@ -101,6 +110,14 @@ export class Listener {
 			node.removeEventListener(type, this._handlerWrap, this.useCapture);
 		}
 
+		if (this.options && this.options.onUnbind) {
+			this.options.onUnbind();
+		}
+
+		if (this.options && this.options.finally) {
+			this.options.finally();
+		}
+
 		delete this._isBound;
 	}
 }
@@ -111,5 +128,7 @@ export namespace Listener {
 		namespace?: string,
 		queued?: boolean,
 		keyCode?: number,
+		onUnbind?();
+		finally?();
 	}
 }
