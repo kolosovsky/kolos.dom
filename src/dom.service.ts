@@ -337,7 +337,7 @@ export class DOMService {
 	}
 
 	enableFullScreen() {
-		let doc: any = document;
+		let doc: any = document.documentElement;
 
 		if (doc.requestFullScreen) {
 			doc.requestFullScreen();
