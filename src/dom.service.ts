@@ -336,13 +336,15 @@ export class DOMService {
 		return result;
 	}
 
-	enableFullScreen(elem) {
-		if (elem.requestFullScreen) {
-			elem.requestFullScreen();
-		} else if (elem.mozRequestFullScreen) {
-			elem.mozRequestFullScreen();
-		} else if (elem.webkitRequestFullScreen) {
-			elem.webkitRequestFullScreen();
+	enableFullScreen() {
+		let doc: any = document;
+
+		if (doc.requestFullScreen) {
+			doc.requestFullScreen();
+		} else if (doc.mozRequestFullScreen) {
+			doc.mozRequestFullScreen();
+		} else if (doc.webkitRequestFullScreen) {
+			doc.webkitRequestFullScreen();
 		}
 	}
 
