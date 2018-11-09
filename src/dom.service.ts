@@ -345,6 +345,8 @@ export class DOMService {
 			doc.mozRequestFullScreen();
 		} else if (doc.webkitRequestFullScreen) {
 			doc.webkitRequestFullScreen();
+		} else if (doc.msRequestFullscreen) {
+			doc.msRequestFullscreen();
 		}
 	}
 
@@ -357,6 +359,8 @@ export class DOMService {
 			doc.mozCancelFullScreen();
 		} else if (doc.webkitCancelFullScreen) {
 			doc.webkitCancelFullScreen();
+		}else if (doc.msExitFullscreen) {
+			doc.msExitFullscreen();
 		}
 	}
 

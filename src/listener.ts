@@ -80,7 +80,13 @@ export class Listener {
 				});
 			}
 		} else {
-			node.addEventListener(type, this._handlerWrap, this.useCapture);
+			let types = type.split(' ');
+
+			for (let i = 0, length = types.length; i < length; i++) {
+				let type = types[i];
+
+				node.addEventListener(type, this._handlerWrap, this.useCapture);
+			}
 		}
 
 		if (this.options) {
@@ -93,7 +99,7 @@ export class Listener {
 	unbind() {
 		if (!this._isBound) { return; }
 
-		let { node, type } = this;
+		let { node } = this;
 
 		if (this.queued) {
 			let queue = node[queuesSymbol][this._queueKye];
@@ -107,7 +113,13 @@ export class Listener {
 				delete node[globalListenersSymbol][this._queueKye];
 			}
 		} else {
-			node.removeEventListener(type, this._handlerWrap, this.useCapture);
+			let types = this.type.split(' ');
+
+			for (let i = 0, length = types.length; i < length; i++) {
+				let type = types[i];
+
+				node.removeEventListener(type, this._handlerWrap, this.useCapture);
+			}
 		}
 
 		if (this.options && this.options.onUnbind) {
