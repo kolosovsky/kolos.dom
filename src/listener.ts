@@ -31,8 +31,10 @@ export class Listener {
 
 		this._handlerWrap = (e) => {
 			if (typeof this.keyCode === 'undefined' || e.keyCode === this.keyCode) {
+				let res;
+
 				if (this.handler) {
-					this.handler(e, this);
+					res = this.handler(e, this);
 				}
 
 				if (this.handlerCallback) {
@@ -42,6 +44,8 @@ export class Listener {
 				if (this.options && this.options.finally) {
 					this.options.finally();
 				}
+
+				return res;
 			}
 		};
 
