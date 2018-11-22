@@ -369,10 +369,9 @@ export abstract class PanelComponent {
 
 	dismount(params: IDismountingParams = {}) {
 		const boundingClientRect = this.node.getBoundingClientRect();
-		const computedStyle = getComputedStyle(this.node);
 		let {
-			left = boundingClientRect.left + this.DOMService.scroll.x - parseFloat(computedStyle.marginLeft),
-			top = boundingClientRect.top + this.DOMService.scroll.y - parseFloat(computedStyle.marginTop),
+			left = boundingClientRect.left + this.DOMService.scroll.x,
+			top = boundingClientRect.top + this.DOMService.scroll.y,
 			avatar = this.node.cloneNode(true) as HTMLElement,
 		} = params;
 		let nodeStyle = this.node.style;
@@ -389,13 +388,28 @@ export abstract class PanelComponent {
 		nodeStyle.width = this.getWidth() + 'px';
 		nodeStyle.height = this.getHeight() + 'px';
 		nodeStyle.position = 'absolute';
-		nodeStyle.left = left + 'px';
-		nodeStyle.top = top + 'px';
-		nodeStyle.zIndex = '9999';
 
 		this.node.parentNode.insertBefore(avatar, this.node.nextSibling);
 
 		document.body.appendChild(this.node);
+
+		// we must calculate computed styles only after appending node to body
+		// case: node is affected by some complicated css selector (.parent .node or .sibling + .node etc.)
+		const computedStyle = getComputedStyle(this.node);
+		let marginLeft = parseFloat(computedStyle.marginLeft);
+		let marginTop = parseFloat(computedStyle.marginTop);
+
+		if (marginLeft) {
+			left -= marginLeft;
+		}
+
+		if (marginTop) {
+			top -= marginTop;
+		}
+
+		nodeStyle.left = left + 'px';
+		nodeStyle.top = top + 'px';
+		nodeStyle.zIndex = '9999';
 
 		this.addListener(PanelComponent.LISTENER_NAMESPACES.DISMOUNTING, window, 'resize', this.close.bind(this));
 		this.addListener(PanelComponent.LISTENER_NAMESPACES.DISMOUNTING, window, 'scroll', this.onDocumentScroll.bind(this), {useCapture: true});
