@@ -367,13 +367,13 @@ export class DOMService {
 	isFullScreenAvailable() {
 		let doc: any = document;
 
-		return doc.documentElement.requestFullScreen || doc.documentElement.mozRequestFullScreen || doc.documentElement.webkitRequestFullScreen;
+		return doc.documentElement.requestFullScreen || doc.documentElement.mozRequestFullScreen || doc.documentElement.webkitRequestFullScreen || doc.documentElement.msRequestFullScreen;
 	}
 
 	isFullScreenEnabled() {
 		let doc: any = document;
 
-		return doc.fullscreenEnabled || doc.mozFullscreenEnabled || doc.webkitIsFullScreen;
+		return doc.fullscreenEnabled || doc.mozFullscreenEnabled || doc.webkitIsFullScreen || doc.msIsFullScreen;
 	}
 
 	isFile(obj) {
