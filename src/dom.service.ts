@@ -27,8 +27,11 @@ export class DOMService {
 	IS_WINDOWS = navigator.platform.indexOf('Win') > -1;
 	IS_LINUX = navigator.appVersion.indexOf("Linux") > -1;
 	IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-	IS_FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-	IS_CHROME = !!(window as any).chrome && !!(window as any).chrome.webstore;
+	IS_FIREFOX: boolean;
+	IS_CHROME: boolean;
+	IS_IE: boolean;
+	IS_EDGE: boolean;
+	IS_SAFARI: boolean;
 
 	KEYCODES = {
 		BACKSPACE: 8,
@@ -90,6 +93,18 @@ export class DOMService {
 	private _SCROLLBAR_WIDTH: number;
 
 	constructor() {
+		if (!!(window as any).chrome && !!(window as any).chrome.webstore) {
+			this.IS_CHROME = true;
+		} else if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+			this.IS_FIREFOX = true;
+		} else if (navigator.appName == 'Microsoft Internet Explorer' || !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/))) {
+			this.IS_IE = true;
+		} else if (navigator.userAgent.indexOf('Edge/') > -1) {
+			this.IS_EDGE = true;
+		} else if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
+			this.IS_SAFARI = true;
+		}
+
 		if (this.IS_FIREFOX) {
 			this.KEYCODES.EQUAL = 61;
 			this.KEYCODES.DASH = 173;
