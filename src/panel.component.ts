@@ -40,12 +40,6 @@ interface IDismountingParams {
 	avatar?: HTMLElement,
 }
 
-interface IOpeningParams {
-	dismountingParams?: IDismountingParams;
-	data?: any;
-	closingCallback?();
-}
-
 export abstract class PanelComponent {
 	static NODE_PROP_KEY = Symbol();
 
@@ -81,7 +75,7 @@ export abstract class PanelComponent {
 		top?: number,
 		bottom?: number,
 	};
-	openingParams?: IOpeningParams;
+	openingParams?: PanelComponent.IOpeningParams;
 
 	// PRIVATE PROPERTIES
 	private _node: HTMLElement;
@@ -123,7 +117,7 @@ export abstract class PanelComponent {
 		return this._node;
 	}
 
-	async open(params: IOpeningParams = {}) {
+	async open(params: PanelComponent.IOpeningParams = {}) {
 		if (this.isOpen()) { return; }
 
 		this.openingParams = params;
@@ -503,5 +497,13 @@ export abstract class PanelComponent {
 
 		delete this.node[PanelComponent.NODE_PROP_KEY];
 		delete this.node;
+	}
+}
+
+export namespace PanelComponent {
+	export interface IOpeningParams {
+		dismountingParams?: IDismountingParams;
+		data?: any;
+		closingCallback?();
 	}
 }
