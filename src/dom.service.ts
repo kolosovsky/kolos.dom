@@ -22,6 +22,10 @@ interface IVisible {
 }
 
 export class DOMService {
+	public static IDLE_INTERVAL = 10000;
+
+	idleTime = 0;
+
 	IS_TOUCH_DEVICE = ('ontouchstart' in window || navigator.maxTouchPoints);
 	IS_MAC = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 	IS_WINDOWS = navigator.platform.indexOf('Win') > -1;
@@ -119,6 +123,10 @@ export class DOMService {
 		document.addEventListener('scroll', this.onDocumentScroll.bind(this));
 		window.addEventListener('resize', this.onWindowResize.bind(this));
 
+		setInterval(() => {
+			this.idleTime += DOMService.IDLE_INTERVAL;
+		}, DOMService.IDLE_INTERVAL);
+
 		this.refreshViewport();
 		this.refreshScroll();
 	}
@@ -127,6 +135,8 @@ export class DOMService {
 
 	onDocumentKeyDown(e) {
 		this.pressedKeys.push(e.keyCode);
+
+		this.idleTime = 0;
 	}
 
 	onDocumentKeyUp(e) {
@@ -139,10 +149,14 @@ export class DOMService {
 
 	onWindowResize() {
 		this.refreshViewport();
+
+		this.idleTime = 0;
 	}
 
 	onDocumentScroll() {
 		this.refreshScroll();
+
+		this.idleTime = 0;
 	}
 
 	refreshViewport() {
@@ -179,6 +193,8 @@ export class DOMService {
 
 		this.pointerCoords.x = e.clientX;
 		this.pointerCoords.y = e.clientY;
+
+		this.idleTime = 0;
 	}
 
 	isPointerPressed = 0;
@@ -188,6 +204,8 @@ export class DOMService {
 		this.lastPointerDownEvent = e;
 
 		this.isPointerPressed++;
+
+		this.idleTime = 0;
 	}
 
 	onDocumentPointerUp(e) {
