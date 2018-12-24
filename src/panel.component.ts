@@ -162,10 +162,12 @@ export abstract class PanelComponent {
 			this.fit();
 		}
 
-		this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'keyup', this.close.bind(this), {
-			keyCode: this.DOMService.KEYCODES.ESCAPE,
-			queued: true
-		});
+		if (this.closeByEscape) {
+			this.addListener(PanelComponent.LISTENER_NAMESPACES.OPENING, document.documentElement, 'keyup', this.close.bind(this), {
+				keyCode: this.DOMService.KEYCODES.ESCAPE,
+				queued: true
+			});
+		}
 
 		if (this.closeByOutClick) {
 			if (this.DOMService.isPointerPressed) {
