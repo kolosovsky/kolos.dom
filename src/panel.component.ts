@@ -364,6 +364,8 @@ export abstract class PanelComponent {
 	}
 
 	dismount(params: IDismountingParams = {}) {
+		if (this._isDismounted) { return; }
+
 		const boundingClientRect = this.node.getBoundingClientRect();
 		let {
 			left = boundingClientRect.left + this.DOMService.scroll.x,
@@ -458,6 +460,8 @@ export abstract class PanelComponent {
 	}
 
 	mount() {
+		if (!this._isDismounted) { return; }
+
 		if (document.documentElement.contains(this._avatar)) {
 			this._avatar.parentNode.insertBefore(this.node, this._avatar.nextSibling);
 		} else {
