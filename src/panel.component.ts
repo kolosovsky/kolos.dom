@@ -364,6 +364,7 @@ export abstract class PanelComponent {
 	}
 
 	CSSVariablesToSave?: string[];
+	CSSPropertiesToSave?: string[];
 
 	dismount(params: IDismountingParams = {}) {
 		if (this._isDismounted) { return; }
@@ -389,13 +390,21 @@ export abstract class PanelComponent {
 		nodeStyle.height = this.getHeight() + 'px';
 		nodeStyle.position = 'absolute';
 
-		if (this.CSSVariablesToSave) {
-			let computedStyle = getComputedStyle(this.node);
+		let computedStyle = getComputedStyle(this.node);
 
+		if (this.CSSVariablesToSave) {
 			for (let i = 0, length = this.CSSVariablesToSave.length; i < length; i++) {
 				let variable = this.CSSVariablesToSave[i];
 
-				nodeStyle.setProperty(variable, computedStyle.getPropertyValue(variable))
+				nodeStyle.setProperty(variable, computedStyle.getPropertyValue(variable));
+			}
+		}
+
+		if (this.CSSPropertiesToSave) {
+			for (let i = 0, length = this.CSSPropertiesToSave.length; i < length; i++) {
+				let property = this.CSSPropertiesToSave[i];
+
+				nodeStyle[property] = computedStyle[property];
 			}
 		}
 
@@ -405,7 +414,7 @@ export abstract class PanelComponent {
 
 		// we must calculate computed styles only after appending node to body
 		// case: node is affected by some complicated css selector (.parent .node or .sibling + .node etc.)
-		const computedStyle = getComputedStyle(this.node);
+		computedStyle = getComputedStyle(this.node);
 		let marginLeft = parseFloat(computedStyle.marginLeft);
 		let marginTop = parseFloat(computedStyle.marginTop);
 
