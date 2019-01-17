@@ -363,6 +363,8 @@ export abstract class PanelComponent {
 		this._originalAttributes[attrName] = this.node.getAttribute(attrName);
 	}
 
+	CSSVariablesToSave?: string[];
+
 	dismount(params: IDismountingParams = {}) {
 		if (this._isDismounted) { return; }
 
@@ -386,6 +388,16 @@ export abstract class PanelComponent {
 		nodeStyle.width = this.getWidth() + 'px';
 		nodeStyle.height = this.getHeight() + 'px';
 		nodeStyle.position = 'absolute';
+
+		if (this.CSSVariablesToSave) {
+			let computedStyle = getComputedStyle(this.node);
+
+			for (let i = 0, length = this.CSSVariablesToSave.length; i < length; i++) {
+				let variable = this.CSSVariablesToSave[i];
+
+				nodeStyle.setProperty(variable, computedStyle.getPropertyValue(variable))
+			}
+		}
 
 		this.node.parentNode.insertBefore(avatar, this.node.nextSibling);
 
