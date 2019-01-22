@@ -185,7 +185,9 @@ export abstract class PanelComponent {
 
 	onDocumentPointerup(e) {
 		if (this.shouldClickCauseClosing(e)) {
-			this.close();
+			this.close({
+				trigger: PanelComponent.CLOSING_TRIGGERS.OUTSIDE_CLICK
+			});
 		}
 	}
 
