@@ -1,6 +1,7 @@
 import { DOMService } from './dom.service';
 import { Listener } from "./listener";
 import { OneTimeListener } from "./one-time-listener";
+import IClosingParams = PanelComponent.IClosingParams;
 
 export enum PanelComponentStates {
 	Open = 'open',
@@ -221,7 +222,7 @@ export abstract class PanelComponent {
 		return false;
 	}
 
-	close() {
+	close(params?: IClosingParams) {
 		if (this.isClosed()) { return; }
 
 		this.state = PanelComponentStates.Closed;
@@ -532,5 +533,13 @@ export namespace PanelComponent {
 		dismountingParams?: IDismountingParams;
 		data?: any;
 		closingCallback?();
+	}
+
+	export enum CLOSING_TRIGGERS {
+		IMPERATIVE, OUTSIDE_CLICK
+	}
+
+	export interface IClosingParams {
+		trigger: CLOSING_TRIGGERS
 	}
 }
