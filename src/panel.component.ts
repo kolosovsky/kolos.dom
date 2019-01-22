@@ -66,7 +66,7 @@ export abstract class PanelComponent {
 	// EVENTS
 	onOpen?(params?);
 
-	onClose?();
+	onClose?(params);
 
 	// PUBLIC PROPERTIES
 	state: PanelComponentStates = PanelComponentStates.Closed;
@@ -257,7 +257,7 @@ export abstract class PanelComponent {
 		}
 
 		if (this.onClose) {
-			this.onClose();
+			this.onClose(params);
 		}
 
 		this.removeListeners(PanelComponent.LISTENER_NAMESPACES.OPENING);
