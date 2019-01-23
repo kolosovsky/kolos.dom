@@ -274,18 +274,24 @@ export class DOMService {
 		return e.ctrlKey || (e.metaKey && this.IS_MAC);
 	}
 
-	getImageSize(url: string): Promise<any> {
+	preloadImage(url: string): Promise<any> {
 		return new Promise((resolve) => {
-			let newImg = new Image();
+			let image = new Image();
 
-			newImg.onload = () => {
-				resolve({
-					width: newImg.width,
-					height: newImg.height,
-				});
+			image.onload = () => {
+				resolve(image);
 			};
 
-			newImg.src = url; // this must be done AFTER setting onload
+			image.src = url; // this must be done AFTER setting onload
+		});
+	}
+
+	getImageSize(url: string): Promise<any> {
+		return this.preloadImage(url).then(image => {
+			return {
+				width: image.width,
+				height: image.height,
+			};
 		});
 	}
 
