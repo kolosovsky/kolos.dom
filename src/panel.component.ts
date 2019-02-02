@@ -528,6 +528,12 @@ export abstract class PanelComponent {
 		delete this.node[PanelComponent.NODE_PROP_KEY];
 		delete this.node;
 	}
+
+	onTogglerPointerup(e) {
+		if (this.DOMService.lastPointerDownEvent.target === e.target) {
+			this.toggle();
+		}
+	}
 }
 
 export namespace PanelComponent {
