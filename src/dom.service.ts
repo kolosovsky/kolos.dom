@@ -212,7 +212,7 @@ export class DOMService {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 	}
 
-	listen(elem: HTMLElement | Window, type: string, handler, options?: Listener.IOptions) {
+	listen(elem: HTMLElement | Window, type: keyof HTMLElementEventMap, handler, options?: Listener.IOptions) {
 		return new Listener(elem, type, handler, options);
 	}
 
