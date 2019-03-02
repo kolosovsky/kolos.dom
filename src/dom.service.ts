@@ -241,30 +241,34 @@ export class DOMService {
 		return document.createElementNS("http://www.w3.org/2000/svg", nodeName);
 	}
 
+	refreshScrollbarWidth() {
+		let outer = document.createElement("div");
+
+		outer.style.visibility = "hidden";
+		outer.style.width = "100px";
+		outer.style.msOverflowStyle = "scrollbar";
+
+		body.appendChild(outer);
+
+		let widthNoScroll = outer.offsetWidth;
+
+		outer.style.overflow = "scroll";
+
+		let inner = document.createElement("div");
+
+		inner.style.width = "100%";
+		outer.appendChild(inner);
+
+		let widthWithScroll = inner.offsetWidth;
+
+		outer.parentNode.removeChild(outer);
+
+		this._SCROLLBAR_WIDTH = widthNoScroll - widthWithScroll;
+	}
+
 	getScrollbarWidth() {
 		if (typeof this._SCROLLBAR_WIDTH === 'undefined') {
-			let outer = document.createElement("div");
-
-			outer.style.visibility = "hidden";
-			outer.style.width = "100px";
-			outer.style.msOverflowStyle = "scrollbar";
-
-			body.appendChild(outer);
-
-			let widthNoScroll = outer.offsetWidth;
-
-			outer.style.overflow = "scroll";
-
-			let inner = document.createElement("div");
-
-			inner.style.width = "100%";
-			outer.appendChild(inner);
-
-			let widthWithScroll = inner.offsetWidth;
-
-			outer.parentNode.removeChild(outer);
-
-			this._SCROLLBAR_WIDTH = widthNoScroll - widthWithScroll;
+			this.refreshScrollbarWidth();
 		}
 
 		return this._SCROLLBAR_WIDTH;
