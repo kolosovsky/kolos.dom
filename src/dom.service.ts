@@ -38,6 +38,7 @@ export class DOMService {
 	IS_SAFARI: boolean;
 
 	KEYCODES = {
+		COMMAND: 0, // will be assigned later
 		BACKSPACE: 8,
 		TAB: 9,
 		ENTER: 13,
@@ -133,14 +134,26 @@ export class DOMService {
 
 	pressedKeys = [];
 
+	isMacCommandKeyPressed?: boolean;
+
 	onDocumentKeyDown(e) {
 		this.pressedKeys.push(e.keyCode);
+
+		if (this.IS_MAC && e.metaKey) {
+			this.isMacCommandKeyPressed = true;
+
+			this.KEYCODES.COMMAND = e.keyCode;
+		}
 
 		this.idleTime = 0;
 	}
 
 	onDocumentKeyUp(e) {
 		this.pressedKeys.splice(this.pressedKeys.indexOf(e.keyCode));
+
+		if (this.IS_MAC && e.keyCode === this.KEYCODES.COMMAND) {
+			this.isMacCommandKeyPressed = false;
+		}
 	}
 
 	isKeyPressed(keyCode) {
@@ -274,8 +287,8 @@ export class DOMService {
 		return this._SCROLLBAR_WIDTH;
 	}
 
-	isCtrl(e): boolean {
-		return e.ctrlKey || (e.metaKey && this.IS_MAC);
+	isCtrl(e?): boolean {
+		return this.isKeyPressed(this.KEYCODES.CTRL) || this.isMacCommandKeyPressed;
 	}
 
 	preloadImage(url: string): Promise<any> {
