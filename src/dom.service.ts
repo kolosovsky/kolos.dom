@@ -123,6 +123,7 @@ export class DOMService {
 		document.addEventListener('pointerup', this.onDocumentPointerUp.bind(this));
 		document.addEventListener('scroll', this.onDocumentScroll.bind(this));
 		window.addEventListener('resize', this.onWindowResize.bind(this));
+		window.addEventListener('blur', this.onWindowBlur.bind(this));
 
 		setInterval(() => {
 			this.idleTime += DOMService.IDLE_INTERVAL;
@@ -130,6 +131,10 @@ export class DOMService {
 
 		this.refreshViewport();
 		this.refreshScroll();
+	}
+	
+	onWindowBlur() {
+		this.pressedKeys = [];
 	}
 
 	pressedKeys = [];
