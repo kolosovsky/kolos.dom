@@ -2,9 +2,9 @@ const queuesSymbol = Symbol();
 const globalListenersSymbol = Symbol();
 
 export class Listener {
-	private _handlerWrap?: (e) => any;
-	private _queueKye?: string;
-	private _isBound?: boolean;
+	protected _handlerWrap?: (e) => any;
+	protected _queueKye?: string;
+	protected _isBound?: boolean;
 
 	handlerCallback?();
 
@@ -15,9 +15,9 @@ export class Listener {
 	keyCode?: number;
 
 	constructor(
-		public node: HTMLElement | Window,
-		public type: string,
-		public handler?: (e: Event, listener: Listener) => any,
+		protected node: HTMLElement | Window,
+		protected type: string,
+		protected handler?: (e: Event, listener: Listener) => any,
 		options?: Listener.IOptions
 	) {
 		if (options) {
