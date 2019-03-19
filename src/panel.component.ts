@@ -68,15 +68,14 @@ export abstract class PanelComponent {
 
 	onClose?(params);
 
-	// PUBLIC PROPERTIES
-	state: PanelComponentStates = PanelComponentStates.Closed;
-	overflowing?: {
+	protected state: PanelComponentStates = PanelComponentStates.Closed;
+	protected overflowing?: {
 		left?: number,
 		right?: number,
 		top?: number,
 		bottom?: number,
 	};
-	openingParams?: PanelComponent.IOpeningParams;
+	protected openingParams?: PanelComponent.IOpeningParams;
 
 	// PRIVATE PROPERTIES
 	private _node: HTMLElement;
