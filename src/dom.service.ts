@@ -134,35 +134,33 @@ export class DOMService {
 	}
 	
 	onWindowBlur() {
-		this.pressedKeys = [];
+		this.pressedKeys.clear();
 	}
 
-	pressedKeys = [];
+	pressedKeys = new Set();
 
 	isMacCommandKeyPressed?: boolean;
 
 	onDocumentKeyDown(e) {
-		this.pressedKeys.push(e.keyCode);
+		this.pressedKeys.add(e.keyCode);
 
 		if (this.IS_MAC && e.metaKey) {
 			this.isMacCommandKeyPressed = true;
-
-			this.KEYCODES.COMMAND = e.keyCode;
 		}
 
 		this.idleTime = 0;
 	}
 
 	onDocumentKeyUp(e) {
-		this.pressedKeys.splice(this.pressedKeys.indexOf(e.keyCode));
+		this.pressedKeys.delete(e.keyCode);
 
-		if (this.IS_MAC && e.keyCode === this.KEYCODES.COMMAND) {
+		if (this.IS_MAC && !e.metaKey) {
 			this.isMacCommandKeyPressed = false;
 		}
 	}
 
 	isKeyPressed(keyCode) {
-		return this.pressedKeys.includes(keyCode);
+		return this.pressedKeys.has(keyCode);
 	}
 
 	onWindowResize() {
@@ -293,7 +291,7 @@ export class DOMService {
 	}
 
 	isCtrl(e?): boolean {
-		return this.isKeyPressed(this.KEYCODES.CTRL) || this.isMacCommandKeyPressed;
+		return this.IS_MAC ? this.isMacCommandKeyPressed : this.isKeyPressed(this.KEYCODES.CTRL);
 	}
 
 	preloadImage(url: string): Promise<any> {
