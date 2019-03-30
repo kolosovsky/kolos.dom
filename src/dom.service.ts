@@ -139,24 +139,14 @@ export class DOMService {
 
 	pressedKeys = new Set();
 
-	isMacCommandKeyPressed?: boolean;
-
 	onDocumentKeyDown(e) {
 		this.pressedKeys.add(e.keyCode);
-
-		if (this.IS_MAC && e.metaKey) {
-			this.isMacCommandKeyPressed = true;
-		}
 
 		this.idleTime = 0;
 	}
 
 	onDocumentKeyUp(e) {
 		this.pressedKeys.delete(e.keyCode);
-
-		if (this.IS_MAC && !e.metaKey) {
-			this.isMacCommandKeyPressed = false;
-		}
 	}
 
 	isKeyPressed(keyCode) {
@@ -290,8 +280,18 @@ export class DOMService {
 		return this._SCROLLBAR_WIDTH;
 	}
 
-	isCtrl(e?): boolean {
-		return this.IS_MAC ? this.isMacCommandKeyPressed : this.isKeyPressed(this.KEYCODES.CTRL);
+	isCtrl(e): boolean {
+		e = this.getSourceEvent(e);
+
+		return this.IS_MAC ? e.metaKey : e.ctrlKey;
+	}
+
+	isShift(e): boolean {
+		return this.getSourceEvent(e).shiftKey;
+	}
+
+	getSourceEvent(e) {
+		return e.srcEvent /** hammerjs event **/ ? e.srcEvent : e;
 	}
 
 	preloadImage(url: string): Promise<any> {
