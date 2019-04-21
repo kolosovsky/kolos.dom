@@ -254,6 +254,8 @@ export class DOMService {
 		outer.style.width = "100px";
 		outer.style.msOverflowStyle = "scrollbar";
 
+		outer.classList.add('scroll');
+
 		body.appendChild(outer);
 
 		let widthNoScroll = outer.offsetWidth;
