@@ -30,7 +30,7 @@ export class DOMService {
 	IS_MAC = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 	IS_WINDOWS = navigator.platform.indexOf('Win') > -1;
 	IS_LINUX = navigator.appVersion.indexOf("Linux") > -1;
-	IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+	IS_IOS = navigator.userAgent && navigator.userAgent.search(/iPad|iPhone|iPod/) !== -1 && !(window as any).MSStream;
 	IS_FIREFOX: boolean;
 	IS_CHROME: boolean;
 	IS_IE: boolean;
@@ -357,7 +357,7 @@ export class DOMService {
 	getBrowserInfo() {
 		let ua = navigator.userAgent, tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
 
-		if (/trident/i.test(M[1])) {
+		if (M[1] && M[1].search(/trident/i) !== -1) {
 			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
 			return {name: 'IE', version: (tem[1] || '')};
 		}
