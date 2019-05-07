@@ -207,7 +207,20 @@ export class DOMService {
 	isPointerPressed = 0;
 	lastPointerDownEvent: MouseEvent;
 
+	fixEventTarget(e) {
+		let originalEvent = e.srcEvent /* hammerjs */ ? e.srcEvent : e;
+
+		if (originalEvent.composed) { // event came fro shadow dom
+			let target = originalEvent.composedPath()[0];
+
+			// https://stackoverflow.com/a/49122553/5385623
+			Object.defineProperty(e, 'target', {writable: false, value: target});
+		}
+	}
+
 	onDocumentPointerDown(e) {
+		this.fixEventTarget(e);
+
 		this.lastPointerDownEvent = e;
 
 		this.isPointerPressed++;
