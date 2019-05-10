@@ -117,14 +117,16 @@ export class DOMService {
 			this.KEYCODES.SEMI_COLON = 59;
 		}
 
-		document.addEventListener('keydown', this.onDocumentKeyDown.bind(this));
-		document.addEventListener('keyup', this.onDocumentKeyUp.bind(this));
-		document.addEventListener('pointermove', this.onDocumentPointerMove.bind(this));
-		document.addEventListener('pointerdown', this.onDocumentPointerDown.bind(this));
-		document.addEventListener('pointerup', this.onDocumentPointerUp.bind(this));
-		document.addEventListener('scroll', this.onDocumentScroll.bind(this));
-		window.addEventListener('resize', this.onWindowResize.bind(this));
-		window.addEventListener('blur', this.onWindowBlur.bind(this));
+		let DOMEventsHandler = this.DOMEvent.bind(this);
+
+		document.addEventListener('keydown', DOMEventsHandler);
+		document.addEventListener('keyup', DOMEventsHandler);
+		document.addEventListener('pointermove', DOMEventsHandler);
+		document.addEventListener('pointerdown', DOMEventsHandler);
+		document.addEventListener('pointerup', DOMEventsHandler);
+		document.addEventListener('scroll', DOMEventsHandler);
+		window.addEventListener('resize', DOMEventsHandler);
+		window.addEventListener('blur', DOMEventsHandler);
 
 		setInterval(() => {
 			this.idleTime += DOMService.IDLE_INTERVAL;
@@ -133,8 +135,44 @@ export class DOMService {
 		this.refreshViewport();
 		this.refreshScroll();
 	}
+
+	DOMEvent(e) {
+		switch (e.type) {
+			case 'keydown':
+				this.onDocumentKeyDown(e);
+				break;
+
+			case 'keyup':
+				this.onDocumentKeyUp(e);
+				break;
+
+			case 'pointermove':
+				this.onDocumentPointerMove(e);
+				break;
+
+			case 'pointerdown':
+				this.onDocumentPointerDown(e);
+				break;
+
+			case 'pointerup':
+				this.onDocumentPointerUp(e);
+				break;
+
+			case 'scroll':
+				this.onDocumentScroll(e);
+				break;
+
+			case 'resize':
+				this.onWindowResize(e);
+				break;
+
+			case 'blur':
+				this.onWindowBlur(e);
+				break;
+		}
+	}
 	
-	onWindowBlur() {
+	onWindowBlur(e) {
 		this.pressedKeys.clear();
 	}
 
@@ -154,13 +192,13 @@ export class DOMService {
 		return this.pressedKeys.has(keyCode);
 	}
 
-	onWindowResize() {
+	onWindowResize(e) {
 		this.refreshViewport();
 
 		this.idleTime = 0;
 	}
 
-	onDocumentScroll() {
+	onDocumentScroll(e) {
 		this.refreshScroll();
 
 		this.idleTime = 0;
@@ -284,16 +322,16 @@ export class DOMService {
 	}
 
 	isCtrl(e): boolean {
-		e = this.getSourceEvent(e);
+		e = this.getOriginalEvent(e);
 
 		return this.IS_MAC ? e.metaKey : e.ctrlKey;
 	}
 
 	isShift(e): boolean {
-		return this.getSourceEvent(e).shiftKey;
+		return this.getOriginalEvent(e).shiftKey;
 	}
 
-	getSourceEvent(e) {
+	getOriginalEvent(e) {
 		return e.srcEvent /** hammerjs event **/ ? e.srcEvent : e;
 	}
 
