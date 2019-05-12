@@ -15,7 +15,7 @@ export class Listener {
 	keyCode?: number;
 
 	constructor(
-		protected node: HTMLElement | Window,
+		protected node: HTMLElement | Window | Document,
 		protected type: string,
 		protected handler?: (e: Event, listener: Listener) => any,
 		options?: Listener.IOptions
