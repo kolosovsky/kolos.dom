@@ -233,8 +233,12 @@ export class DOMService {
 		y: 0
 	};
 
+	lastPointerMoveEvents = {};
+
 	onDocumentPointerMove(e) {
 		this.lastPointerMoveEvent = e;
+
+		this.lastPointerMoveEvents[e.pointerId] = e;
 
 		this.pointerCoords.x = e.clientX;
 		this.pointerCoords.y = e.clientY;
