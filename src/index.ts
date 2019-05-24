@@ -1,7 +1,9 @@
 import { DOMService } from "./dom.service";
+import { Listener } from "./listener";
 
 let Kolos = {
-	DOMService: DOMService
+	DOMService: DOMService,
+	Listener: Listener
 };
 
 export default Kolos;

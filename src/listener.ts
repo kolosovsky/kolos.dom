@@ -3,7 +3,7 @@ const globalListenersSymbol = Symbol();
 
 export class Listener {
 	protected _handlerWrap?: (e) => any;
-	protected _queueKye?: string;
+	protected _queueKey?: string;
 	protected _isBound?: boolean;
 
 	handlerCallback?();
@@ -52,13 +52,17 @@ export class Listener {
 		this.bind();
 	}
 
+	static addEventListener(node, type, handler, userCapture) {
+		node.addEventListener(type, handler, userCapture);
+	}
+
 	bind() {
 		if (this._isBound) { return; }
 
 		let { node, type } = this;
 
 		if (this.queued) {
-			this._queueKye = typeof this.keyCode === 'number' ? `${this.type}.${this.keyCode}` : this.type;
+			this._queueKey = typeof this.keyCode === 'number' ? `${this.type}.${this.keyCode}` : this.type;
 
 			if (!node[queuesSymbol]) {
 				node[queuesSymbol] = {};
@@ -66,11 +70,11 @@ export class Listener {
 
 			let queues = node[queuesSymbol];
 
-			if (!queues[this._queueKye]) {
-				queues[this._queueKye] = [];
+			if (!queues[this._queueKey]) {
+				queues[this._queueKey] = [];
 			}
 
-			let queue = queues[this._queueKye];
+			let queue = queues[this._queueKey];
 
 			queue.push(this);
 
@@ -79,7 +83,7 @@ export class Listener {
 					node[globalListenersSymbol] = {};
 				}
 
-				node[globalListenersSymbol][this._queueKye] = new Listener(node, type, (e) => {
+				node[globalListenersSymbol][this._queueKey] = new Listener(node, type, (e) => {
 					queue[queue.length - 1]._handlerWrap(e);
 				});
 			}
@@ -89,7 +93,7 @@ export class Listener {
 			for (let i = 0, length = types.length; i < length; i++) {
 				let type = types[i];
 
-				node.addEventListener(type, this._handlerWrap, this.useCapture);
+				Listener.addEventListener(node, type, this._handlerWrap, this.useCapture)
 			}
 		}
 
@@ -106,15 +110,15 @@ export class Listener {
 		let { node } = this;
 
 		if (this.queued) {
-			let queue = node[queuesSymbol][this._queueKye];
+			let queue = node[queuesSymbol][this._queueKey];
 
 			queue.splice(queue.indexOf(this), 1);
 
 			if (queue.length === 0) {
-				node[globalListenersSymbol][this._queueKye].unbind();
+				node[globalListenersSymbol][this._queueKey].unbind();
 
-				delete node[queuesSymbol][this._queueKye];
-				delete node[globalListenersSymbol][this._queueKye];
+				delete node[queuesSymbol][this._queueKey];
+				delete node[globalListenersSymbol][this._queueKey];
 			}
 		} else {
 			let types = this.type.split(' ');
