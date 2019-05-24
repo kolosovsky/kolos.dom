@@ -117,23 +117,30 @@ export class DOMService {
 			this.KEYCODES.SEMI_COLON = 59;
 		}
 
-		let DOMEventsHandler = this.DOMEvent.bind(this);
-
-		document.addEventListener('keydown', DOMEventsHandler);
-		document.addEventListener('keyup', DOMEventsHandler);
-		document.addEventListener('pointermove', DOMEventsHandler);
-		document.addEventListener('pointerdown', DOMEventsHandler);
-		document.addEventListener('pointerup', DOMEventsHandler);
-		document.addEventListener('scroll', DOMEventsHandler);
-		window.addEventListener('resize', DOMEventsHandler);
-		window.addEventListener('blur', DOMEventsHandler);
-
 		setInterval(() => {
 			this.idleTime += DOMService.IDLE_INTERVAL;
 		}, DOMService.IDLE_INTERVAL);
 
 		this.refreshViewport();
 		this.refreshScroll();
+	}
+
+	addServiceEventListeners() {
+		let DOMEventsHandler = this.DOMEvent.bind(this);
+
+		this.addEventListener(document, 'keydown', DOMEventsHandler);
+		this.addEventListener(document, 'keyup', DOMEventsHandler);
+		this.addEventListener(document, 'pointermove', DOMEventsHandler);
+		this.addEventListener(document, 'pointerdown', DOMEventsHandler);
+		this.addEventListener(document, 'pointerup', DOMEventsHandler);
+		this.addEventListener(document, 'scroll', DOMEventsHandler);
+
+		this.addEventListener(window, 'resize', DOMEventsHandler);
+		this.addEventListener(window, 'blur', DOMEventsHandler);
+	}
+
+	addEventListener(elem, event, handler) {
+		elem.addEventListener(event, handler);
 	}
 
 	DOMEvent(e) {
