@@ -266,6 +266,12 @@ export class DOMService {
 
 	onDocumentPointerUp(e) {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
+
+		if (this.lastPointerMoveEvents[e.pointerId]) {
+			setTimeout(() => {
+				delete this.lastPointerMoveEvents[e.pointerId];
+			}, 100);
+		}
 	}
 
 	listen(elem: HTMLElement | Window, type: keyof HTMLElementEventMap, handler, options?: Listener.IOptions) {
