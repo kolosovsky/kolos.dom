@@ -256,8 +256,12 @@ export class DOMService {
 	isPointerPressed = 0;
 	lastPointerDownEvent: MouseEvent;
 
+	pressedPointerIDs = [];
+
 	onDocumentPointerDown(e) {
 		this.lastPointerDownEvent = e;
+
+		this.pressedPointerIDs.push(e.pointerId);
 
 		this.isPointerPressed++;
 
@@ -266,6 +270,12 @@ export class DOMService {
 
 	onDocumentPointerUp(e) {
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
+
+		let index = this.pressedPointerIDs.indexOf(e.pointerId);
+
+		if (index !== -1) {
+			this.pressedPointerIDs.splice(index, 1);
+		}
 
 		if (this.lastPointerMoveEvents[e.pointerId]) {
 			setTimeout(() => {
