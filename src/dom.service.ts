@@ -57,16 +57,30 @@ export class DOMService {
 		NUM_0: 48,
 		NUM_1: 49,
 		A: 65,
+		B: 66,
 		C: 67,
 		D: 68,
 		E: 69,
 		F: 70,
 		G: 71,
+		H: 72,
+		I: 73,
+		J: 74,
+		K: 75,
 		L: 76,
+		M: 77,
+		N: 78,
+		O: 79,
 		P: 80,
+		Q: 81,
+		R: 82,
+		S: 83,
+		T: 84,
 		U: 85,
 		V: 86,
+		W: 87,
 		X: 88,
+		Y: 89,
 		Z: 90,
 		NUMPAD_0: 96,
 		NUMPAD_1: 97,
@@ -78,6 +92,16 @@ export class DOMService {
 		COMMA: 188,
 		DASH: 189,
 	};
+
+	getKeyStrByKeyCode(keyCodeToFind) {
+		for (let key in this.KEYCODES) {
+			let keyCode = this.KEYCODES[key];
+
+			if (keyCode === keyCodeToFind) {
+				return key;
+			}
+		}
+	}
 
 	viewport: IViewport = {
 		w: 0,
