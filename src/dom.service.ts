@@ -7,6 +7,8 @@ let body = document.body;
 interface IViewport {
 	w: number;
 	h: number;
+	max: number;
+	min: number;
 }
 
 interface IScroll {
@@ -105,7 +107,9 @@ export class DOMService {
 
 	viewport: IViewport = {
 		w: 0,
-		h: 0
+		h: 0,
+		max: 0,
+		min: 0
 	};
 
 	scroll: IScroll = {
@@ -236,9 +240,14 @@ export class DOMService {
 	}
 
 	refreshViewport() {
+		let viewport = this.viewport;
+
 		// window size including scrollbar size
-		this.viewport.w = Math.max(docElement.clientWidth, window.innerWidth || 0);
-		this.viewport.h = Math.max(docElement.clientHeight, window.innerHeight || 0);
+		viewport.w = Math.max(docElement.clientWidth, window.innerWidth || 0);
+		viewport.h = Math.max(docElement.clientHeight, window.innerHeight || 0);
+
+		viewport.max = Math.max(viewport.w, viewport.h);
+		viewport.min = Math.min(viewport.w, viewport.h);
 
 		this.refreshVisible();
 	}
