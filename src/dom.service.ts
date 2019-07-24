@@ -26,6 +26,8 @@ interface IVisible {
 export class DOMService {
 	public static IDLE_INTERVAL = 10000;
 
+	PIXEL_RATIO = window.devicePixelRatio || 1;
+
 	idleTime = 0;
 
 	IS_TOUCH_DEVICE = ('ontouchstart' in window || navigator.maxTouchPoints);
