@@ -303,7 +303,11 @@ export class DOMService {
 		this.idleTime = 0;
 	}
 
+	lastPointerUpEvent: MouseEvent;
+
 	onDocumentPointerUp(e) {
+		this.lastPointerUpEvent = e;
+
 		this.isPointerPressed = Math.min(0, this.isPointerPressed);
 
 		let index = this.pressedPointerIDs.indexOf(e.pointerId);
