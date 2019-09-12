@@ -60,6 +60,7 @@ export abstract class PanelComponent {
 	get postponePositionAdjusting() { return false; };
 	get closeByEscape() { return true; };
 	get closeByOutClick() { return true; };
+	get fitViaTransform() { return false; };
 	// implement overlay
 	get isOverlayNeeded() { return true; };
 
@@ -327,6 +328,11 @@ export abstract class PanelComponent {
 			height: this.getHeight(true)
 		});
 
+		let translation = {
+			top: 0,
+			left: 0
+		};
+
 		for (let i = 0, length = DIRECTIONS.length; i < length; i++) {
 			const direction = DIRECTIONS[i];
 			const directionOffset = offset[direction.key];
@@ -335,8 +341,21 @@ export abstract class PanelComponent {
 				if (directionOffset < offset[direction.oppositeKey]) {
 					const property = direction.axisKey === 'x' ? 'left' : 'top';
 
-					this.node.style[property] = this._dismounting.coords[direction.axisKey] + (directionOffset * direction.factor) + 'px';
+					translation[property] = directionOffset * direction.factor;
+
+					if (this._dismounting) {
+						translation[property] += this._dismounting.coords[direction.axisKey];
+					}
 				}
+			}
+		}
+
+		if (translation.left !== 0 || translation.top !== 0) {
+			if (this.fitViaTransform) {
+				this.node.style.transform = `translate(${translation.left}px, ${translation.top}px)`;
+			} else {
+				this.node.style.left = `${translation.left}px`;
+				this.node.style.top = `${translation.top}px`;
 			}
 		}
 
