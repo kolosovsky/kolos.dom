@@ -196,6 +196,10 @@ export abstract class PanelComponent {
 		const isInnerClick = this.node.contains(e.target as Node);
 
 		if (!isInnerClick) {
+			if (e.target !== this.DOMService.lastPointerDownEvent.target) {
+				return false;
+			}
+
 			let closestPanel: PanelComponent;
 			let currentNode = e.target;
 
