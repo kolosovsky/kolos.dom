@@ -374,7 +374,7 @@ export class DOMService {
 
 		let widthWithScroll = inner.offsetWidth;
 
-		outer.parentNode.removeChild(outer);
+		outer.remove();
 
 		this._SCROLLBAR_WIDTH = widthNoScroll - widthWithScroll;
 	}
