@@ -619,6 +619,38 @@ export class DOMService {
 
 		return query_string;
 	}
+
+	HTMLElementHelpers: Map<HTMLElement, HTMLElementHelper> = new Map();
+
+	getElementHelper(elem: HTMLElement): HTMLElementHelper {
+		let helper = this.HTMLElementHelpers.get(elem);
+
+		if (!helper) {
+			helper = new HTMLElementHelper(elem);
+
+			this.HTMLElementHelpers.set(elem, helper);
+		}
+
+		return helper;
+	}
+}
+
+export class HTMLElementHelper {
+	constructor(public element: HTMLElement) { }
+
+	private _cachedProperties: any = {};
+
+	cacheProp(prop: string) {
+		let val = this.element[prop];
+
+		this._cachedProperties[prop] = val;
+
+		return val;
+	}
+
+	getCachedProp(prop: string) {
+		return this._cachedProperties[prop];
+	}
 }
 
 // https://stackoverflow.com/a/491105/5385623
