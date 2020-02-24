@@ -599,6 +599,10 @@ export class DOMService {
 		}
 	}
 
+	getNodeAtCaret() {
+		return document.getSelection().anchorNode;
+	}
+
 	// https://stackoverflow.com/a/979995/5385623
 	parseQueryString(query): any {
 		let vars = query.split("&");
