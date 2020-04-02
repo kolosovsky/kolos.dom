@@ -603,29 +603,36 @@ export class DOMService {
 		return document.getSelection().anchorNode;
 	}
 
+	queryParams?: any;
+
 	// https://stackoverflow.com/a/979995/5385623
-	parseQueryString(query): any {
+	getQueryParams(): any {
+		if (this.queryParams) { return this.queryParams; }
+
+		let query = window.location.search.slice(1);
 		let vars = query.split("&");
-		let query_string = {};
+		let queryParams = {};
 
 		for (let i = 0; i < vars.length; i++) {
 			let pair = vars[i].split("=");
 			let key = decodeURIComponent(pair[0]);
 			let value = decodeURIComponent(pair[1]);
 			// If first entry with this name
-			if (typeof query_string[key] === "undefined") {
-				query_string[key] = decodeURIComponent(value);
+			if (typeof queryParams[key] === "undefined") {
+				queryParams[key] = decodeURIComponent(value);
 				// If second entry with this name
-			} else if (typeof query_string[key] === "string") {
-				let arr = [query_string[key], decodeURIComponent(value)];
-				query_string[key] = arr;
+			} else if (typeof queryParams[key] === "string") {
+				let arr = [queryParams[key], decodeURIComponent(value)];
+				queryParams[key] = arr;
 				// If third or later entry with this name
 			} else {
-				query_string[key].push(decodeURIComponent(value));
+				queryParams[key].push(decodeURIComponent(value));
 			}
 		}
 
-		return query_string;
+		this.queryParams = queryParams;
+
+		return queryParams;
 	}
 
 	HTMLElementHelpers: Map<HTMLElement, HTMLElementHelper> = new Map();
