@@ -401,7 +401,7 @@ export class DOMService {
 		return e.srcEvent /** hammerjs event **/ ? e.srcEvent : e;
 	}
 
-	preloadImage(url: string): Promise<any> {
+	preloadImage(urlOrBase64: string): Promise<any> {
 		return new Promise((resolve, reject) => {
 			let image = new Image();
 
@@ -413,7 +413,7 @@ export class DOMService {
 				reject();
 			};
 
-			image.src = url; // this must be done AFTER setting onload
+			image.src = urlOrBase64; // this must be done AFTER setting onload
 		});
 	}
 
