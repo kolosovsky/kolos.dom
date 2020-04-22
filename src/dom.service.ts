@@ -410,6 +410,7 @@ export class DOMService {
 			};
 
 			image.onerror = () => {
+				console.warn(`error while trying to load image: ${urlOrBase64}`);
 				reject();
 			};
 
