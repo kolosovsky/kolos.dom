@@ -418,6 +418,16 @@ export class DOMService {
 		});
 	}
 
+	imageLoadedPromise(img: HTMLImageElement) {
+		if (img.complete) {
+			return Promise.resolve();
+		} else {
+			return new Promise((resolve, reject) => {
+				img.addEventListener('load', () => resolve());
+			})
+		}
+	}
+
 	getImageSize(url: string): Promise<any> {
 		return this.preloadImage(url).then(image => {
 			return {
