@@ -405,16 +405,15 @@ export class DOMService {
 		return new Promise((resolve, reject) => {
 			let image = new Image();
 
-			image.onload = () => {
+			image.addEventListener('load', () => {
 				resolve(image);
-			};
+			});
 
-			image.onerror = () => {
-				console.warn(`error while trying to load image: ${urlOrBase64}`);
-				reject();
-			};
+			image.addEventListener('error', (e) => {
+				reject(e);
+			});
 
-			image.src = urlOrBase64; // this must be done AFTER setting onload
+			image.src = urlOrBase64; // this must be done AFTER setting onload, onerror
 		});
 	}
 
