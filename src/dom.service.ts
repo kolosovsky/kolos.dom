@@ -357,7 +357,7 @@ export class DOMService {
 
 		outer.style.visibility = "hidden";
 		outer.style.width = "100px";
-		outer.style.msOverflowStyle = "scrollbar";
+		(outer.style as any).msOverflowStyle = "scrollbar";
 
 		outer.classList.add('scroll');
 
