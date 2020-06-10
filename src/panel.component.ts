@@ -538,11 +538,6 @@ export abstract class PanelComponent {
 		this.node.style.top = y + 'px';
 	}
 
-	// for angular
-	ngOnDestroy() {
-		this.destroy();
-	}
-
 	destroy() {
 		this.close();
 		this.removeAllListeners();
