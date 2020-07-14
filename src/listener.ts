@@ -41,9 +41,7 @@ export class Listener {
 					this.handlerCallback();
 				}
 
-				if (this.options && this.options.finally) {
-					this.options.finally();
-				}
+				this.options?.finally?.();
 
 				return res;
 			}
