@@ -255,8 +255,8 @@ export class DOMService {
 	}
 
 	refreshScroll() {
-		this.scroll.x = window.pageXOffset || docElement.scrollLeft || body.scrollLeft;
-		this.scroll.y = window.pageYOffset || docElement.scrollTop || body.scrollTop;
+		this.scroll.x = window.pageXOffset ?? docElement.scrollLeft ?? body.scrollLeft;
+		this.scroll.y = window.pageYOffset ?? docElement.scrollTop ?? body.scrollTop;
 
 		this.refreshVisible();
 	}
