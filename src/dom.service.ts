@@ -599,7 +599,16 @@ export class DOMService {
 
 	matches(el, selector) {
 		if (el) {
-			return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
+			let result;
+
+			try {
+				result = (el.matches ?? el.matchesSelector ?? el.msMatchesSelector ?? el.mozMatchesSelector ?? el.webkitMatchesSelector ?? el.oMatchesSelector).call(el, selector);
+			} catch (err) {
+				window['logger'].logError(err);
+				window['logger'].logClientSideErrorToTelegram(`el is ${el} in DOM#matches`);
+			}
+
+			return result;
 		} else {
 			return false;
 		}
