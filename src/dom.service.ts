@@ -556,6 +556,10 @@ export class DOMService {
 		return doc.fullscreenEnabled || doc.mozFullscreenEnabled || doc.webkitIsFullScreen || doc.msIsFullScreen;
 	}
 
+	isBrowserInFullScreen() {
+		return !window.screenTop && !window.screenY;
+	}
+
 	isFile(obj) {
 		return toString.call(obj) === '[object File]';
 	}
