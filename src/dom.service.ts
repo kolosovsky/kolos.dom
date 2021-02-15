@@ -421,7 +421,7 @@ export class DOMService {
 		if (img.complete) {
 			return Promise.resolve();
 		} else {
-			return new Promise((resolve, reject) => {
+			return new Promise<void>((resolve, reject) => {
 				img.addEventListener('load', () => resolve());
 			})
 		}
