@@ -666,6 +666,100 @@ export class DOMService {
 
 		return helper;
 	}
+
+	stripHTMLCounter = 0;
+
+	stripHTML(html: string | HTMLElement, exceptions = ['A', 'UL', 'OL', 'LI']) {
+		let mainElement: HTMLElement;
+		let needToRemoveMainElement = false;
+
+		if (typeof html === 'string') {
+			mainElement = document.createElement('DIV');
+
+			// for some reason without appending this div to the body we lose all line breaks
+			document.body.appendChild(mainElement);
+
+			mainElement.innerHTML = html;
+
+			needToRemoveMainElement = true;
+		} else {
+			mainElement = html;
+		}
+
+		let exceptionsMap = {};
+		let exceptionsMapLength = 0;
+
+		if (exceptions) {
+			// let elements = mainElement.querySelectorAll(exceptions.join(','));
+			let elements = Array.from(mainElement.children);
+
+			for (let i = 0, length = elements.length; i < length; i++) {
+				let element = elements[i] as HTMLElement;
+				let tagName = element.tagName;
+
+				if (exceptions.includes(tagName)) {
+					let key = `$$$HTML_TAG_KEY${this.stripHTMLCounter++}$$$`;
+
+					switch (tagName) {
+						case 'A':
+							let link = element as HTMLAnchorElement;
+							let text = link.innerText;
+							let href = link.getAttribute('href');
+
+							exceptionsMap[key] = `<a href="${href}" target="_blank">${text}</a>`;
+							break;
+
+						case 'UL':
+							exceptionsMap[key] = `<ul>${this.stripHTML(element)}</ul>`;
+							break;
+
+						case 'OL':
+							exceptionsMap[key] = `<ol>${this.stripHTML(element)}</ol>`;
+							break;
+
+						case 'LI':
+							exceptionsMap[key] = `<li>${this.stripHTML(element)}</li>`
+							break;
+					}
+
+					exceptionsMapLength++;
+
+					element.outerHTML = key;
+				} else {
+					element.outerHTML = this.stripHTML(element);
+				}
+			}
+		}
+
+		let innerText = mainElement.innerText;
+
+		if (innerText?.length && exceptions?.length && exceptionsMapLength > 0) {
+			innerText = innerText.replace(/\$\$\$HTML_TAG_KEY\d*?\$\$\$/g, (replacement) => {
+				return exceptionsMap[replacement] ?? '';
+			});
+		}
+
+		if (needToRemoveMainElement) {
+			mainElement.remove();
+		}
+
+		return innerText;
+	}
+
+	stripHTML2(html: string) {
+		let mainElement = document.createElement('DIV');
+
+		// for some reason without appending this div to the body we lose all line breaks
+		document.body.appendChild(mainElement);
+
+		mainElement.innerHTML = html;
+
+		let innerText = mainElement.innerText;
+
+		mainElement.remove();
+
+		return innerText;
+	}
 }
 
 export class HTMLElementHelper {
