@@ -669,9 +669,15 @@ export class DOMService {
 
 	stripHTMLCounter = 0;
 
-	stripHTML(html: string | HTMLElement, exceptions = ['A', 'UL', 'OL', 'LI']) {
+	stripHTML(html: string | HTMLElement, params: { exceptions?: string[]; recursiveCall?: boolean; map?: any; } = {}) {
+		if (!params.exceptions) { params.exceptions = ['A', 'UL', 'OL', 'LI']; }
+		if (!params.map) { params.map = new Map(); }
+
+		let { exceptions, map, recursiveCall } = params;
 		let mainElement: HTMLElement;
 		let needToRemoveMainElement = false;
+
+		params.recursiveCall = true;
 
 		if (typeof html === 'string') {
 			mainElement = document.createElement('DIV');
@@ -685,9 +691,6 @@ export class DOMService {
 		} else {
 			mainElement = html;
 		}
-
-		let exceptionsMap = {};
-		let exceptionsMapLength = 0;
 
 		if (exceptions) {
 			// let elements = mainElement.querySelectorAll(exceptions.join(','));
@@ -706,37 +709,43 @@ export class DOMService {
 							let text = link.innerText;
 							let href = link.getAttribute('href');
 
-							exceptionsMap[key] = `<a href="${href}" target="_blank">${text}</a>`;
+							map.set(key, `<a href="${href}" target="_blank">${text}</a>`);
 							break;
 
 						case 'UL':
-							exceptionsMap[key] = `<ul>${this.stripHTML(element)}</ul>`;
+							map.set(key, `<ul>${this.stripHTML(element, params)}</ul>`);
 							break;
 
 						case 'OL':
-							exceptionsMap[key] = `<ol>${this.stripHTML(element)}</ol>`;
+							map.set(key, `<ol>${this.stripHTML(element, params)}</ol>`);
 							break;
 
 						case 'LI':
-							exceptionsMap[key] = `<li>${this.stripHTML(element)}</li>`
+							map.set(key, `<li>${this.stripHTML(element, params)}</li>`);
 							break;
 					}
 
-					exceptionsMapLength++;
-
 					element.outerHTML = key;
 				} else {
-					element.outerHTML = this.stripHTML(element);
+					element.innerHTML = this.stripHTML(element, params);
 				}
 			}
 		}
 
 		let innerText = mainElement.innerText;
 
-		if (innerText?.length && exceptions?.length && exceptionsMapLength > 0) {
-			innerText = innerText.replace(/\$\$\$HTML_TAG_KEY\d*?\$\$\$/g, (replacement) => {
-				return exceptionsMap[replacement] ?? '';
-			});
+		if (!recursiveCall && innerText?.length && exceptions?.length) {
+			let i = 0;
+
+			while (map.size > 0) {
+				innerText = innerText.replace(/\$\$\$HTML_TAG_KEY\d*?\$\$\$/g, (replacement) => {
+					return map.get(replacement) ?? '';
+				});
+
+				if (i++ > 1000) {
+					break; // just in case
+				}
+			}
 		}
 
 		if (needToRemoveMainElement) {
