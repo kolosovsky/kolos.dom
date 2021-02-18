@@ -670,14 +670,20 @@ export class DOMService {
 	stripHTMLCounter = 0;
 
 	stripHTML(html: string | HTMLElement, params: { exceptions?: string[]; recursiveCall?: boolean; map?: any; } = {}) {
-		if (!params.exceptions) { params.exceptions = ['A', 'UL', 'OL', 'LI']; }
-		if (!params.map) { params.map = new Map(); }
+		// save current value to a variable
+		let recursiveCall = params.recursiveCall;
 
-		let { exceptions, map, recursiveCall } = params;
+		// for following recursive calls
+		params.recursiveCall = true;
+
+		if (!recursiveCall) {
+			if (!params.exceptions) { params.exceptions = ['A', 'UL', 'OL', 'LI']; }
+			if (!params.map) { params.map = new Map(); }
+		}
+
 		let mainElement: HTMLElement;
 		let needToRemoveMainElement = false;
-
-		params.recursiveCall = true;
+		let { exceptions, map } = params;
 
 		if (typeof html === 'string') {
 			mainElement = document.createElement('DIV');
