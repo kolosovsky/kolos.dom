@@ -30,7 +30,7 @@ export class DOMService {
 
 	idleTime = 0;
 
-	IS_TOUCH_DEVICE = ('ontouchstart' in window || navigator.maxTouchPoints);
+	IS_TOUCH_DEVICE = Boolean('ontouchstart' in window || navigator.maxTouchPoints);
 	IS_MAC = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 	IS_WINDOWS = navigator.platform.indexOf('Win') > -1;
 	IS_LINUX = navigator.appVersion.indexOf("Linux") > -1;
